@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # turnos-app · Fila Virtual de Turnos
 
 Sistema de gestión de turnos de atención en ventanilla con tres módulos: **backend** Spring Boot (Java 17 + PostgreSQL/Supabase), **client** Angular 22 con SSR (vistas cliente y asesor), y **pruebas** suite de QA (Selenium E2E + validaciones directas en BD).
