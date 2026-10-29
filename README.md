@@ -292,3 +292,58 @@ Si algún endpoint responde `500` o algo no cuadra con esta documentación:
 2. Prueba el endpoint desde el Swagger UI (http://localhost:8080/swagger-ui.html).
 3. Mira la consola del backend — el stacktrace está habilitado y la respuesta `500` incluye el campo `trace` con el detalle.
 4. Reporta el problema con: endpoint llamado, request completo, response recibido, hora.
+
+
+---
+
+## 10. Cómo ejecutar las pruebas automatizadas (Guía paso a paso)
+
+En la carpeta [`pruebas/`](pruebas/README.md) se encuentran las pruebas automatizadas que abren Google Chrome solas, entran a la aplicación como lo haría una persona real y comprueban que todas las reglas del caso se cumplan (orden de llegada, que los turnos no se repitan y que no deje llamar si la fila está vacía).
+
+Si nunca has ejecutado pruebas automatizadas, solo sigue estos **4 pasos en orden**:
+
+### Paso 1: Lo que necesitas tener instalado en tu computador
+1. **Google Chrome** (el navegador normal).
+2. **Java 17** y **Maven** (los mismos que se usan para encender el backend).
+3. **Node.js** (para encender la página web de Angular).
+
+### Paso 2: Encender el Backend (Terminal 1)
+Abre una terminal en la carpeta principal del proyecto y ejecuta:
+```bash
+cd backend
+mvn spring-boot:run
+```
+> Deja esta ventana abierta. Sabrás que está listo cuando veas el mensaje `Started TurnosApplication`.
+
+### Paso 3: Encender el Frontend / Página Web (Terminal 2)
+Abre una **segunda terminal** en la carpeta del frontend y enciende la página web en el puerto `4200`:
+```bash
+cd client
+npm install
+npm start
+```
+> Deja también esta ventana abierta. Verifica que puedas abrir `http://localhost:4200` en tu navegador.
+
+### Paso 4: Ejecutar las pruebas automatizadas (Terminal 3)
+
+**Opción A — Si todavía NO tienes el Frontend listo y quieres probar SOLO el Backend:**
+Con el backend encendido (Paso 2), abre otra terminal y ejecuta:
+```bash
+cd pruebas
+mvn test -Dtest=BackendTurnosApiTest
+```
+
+**Opción B — Cuando ya estén encendidos el Backend y el Frontend (prueba completa en Google Chrome):**
+```bash
+cd pruebas
+mvn test -Dtest=FilaVirtualTurnosE2ETest
+```
+
+### ¿Qué pasará cuando ejecutes ese comando?
+- Se abrirá automáticamente una ventana de **Google Chrome**.
+- No necesitas tocar el mouse ni el teclado: el robot entrará solo a `/asesor` y `/cliente`, hará clic en los botones y revisará los números en pantalla.
+- Al terminar, Chrome se cerrará solo y en la terminal verás el resultado:
+  - Si todo está bien, dirá **`BUILD SUCCESS`** (`Tests run: 5, Failures: 0, Errors: 0`).
+  - Si alguna regla no se cumple, te mostrará exactamente en cuál de las 5 pruebas falló y por qué.
+
+> Para ver el detalle de cada caso de prueba (caminos felices, caminos tristes y los `id` que debe tener el HTML), consulta [`pruebas/README.md`](pruebas/README.md).

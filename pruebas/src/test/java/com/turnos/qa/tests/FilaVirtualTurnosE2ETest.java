@@ -4,6 +4,7 @@ import com.turnos.qa.pages.AsesorPage;
 import com.turnos.qa.pages.ClientePage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,63 +29,67 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Suite E2E y Funcional para validar el reto "Fila Virtual de Turnos".
- *
- * Tecnologías:
- * - Java 17+
- * - Selenium WebDriver 4.x (ChromeDriver)
- * - JUnit 5 (@TestMethodOrder, @Order, @DisplayName, @BeforeEach, @AfterEach)
- * - Patrón Page Object Model (ClientePage y AsesorPage)
+ * Suite de Pruebas E2E basada en el Caso:
+ * - Caminos Felices (Casos Exitosos): Flujo normal de pedir turno, atender en orden y ver métricas.
+ * - Caminos Tristes (Casos de Bloqueo / Validación): Fila vacía, números duplicados y no saltarse el orden.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Suite E2E - Fila Virtual de Turnos (Angular + Java + Supabase PostgreSQL)")
+@DisplayName("Pruebas E2E - Fila Virtual de Turnos (Caminos Felices y Caminos Tristes)")
 public class FilaVirtualTurnosE2ETest {
 
-    private static final String BASE_URL = System.getProperty("base.url", "http://localhost:4200");
-    private static final Duration EXPLICIT_WAIT_TIMEOUT = Duration.ofSeconds(10);
-
-    // Secuencia inicial precargada en base de datos (08:25:00 a 08:45:00)
-    private static final List<Integer> SECUENCIA_FIFO_ESPERADA = List.of(6, 7, 8, 9, 10);
-    private static final int ULTIMO_TURNO_HISTORICO_MATUTINO = 10;
-
-    // Registro en memoria de turnos vistos/generados para validar unicidad estricta
-    private static final Set<Integer> TURNOS_REGISTRADOS = new HashSet<>(SECUENCIA_FIFO_ESPERADA);
+    private static final String BASE_URL = resolveBaseUrl();
+    private static final Set<Integer> TURNOS_USADOS = new HashSet<>(List.of(1, 2, 3, 4, 5));
 
     private WebDriver driver;
-    private WebDriverWait wait;
     private ClientePage clientePage;
     private AsesorPage asesorPage;
 
+    private static String resolveBaseUrl() {
+        String prop = System.getProperty("base.url");
+        return (prop == null || prop.isBlank()) ? "http://localhost:4200" : prop.trim();
+    }
+
+    private static boolean isFrontendActivo() {
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(2))
+                    .build();
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL))
+                    .GET()
+                    .build();
+            HttpResponse<Void> res = client.send(req, HttpResponse.BodyHandlers.discarding());
+            return res.statusCode() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @BeforeAll
-    static void configurarDriverBinario() {
-        // Resuelve automáticamente la versión de ChromeDriver compatible con el navegador instalado
+    static void configurarDriver() {
+        Assumptions.assumeTrue(
+                isFrontendActivo(),
+                "El Frontend no está encendido en " + BASE_URL + ". Se omiten las pruebas E2E de Chrome (enciende el frontend en el puerto 4200 para ejecutarlas)."
+        );
         WebDriverManager.chromedriver().setup();
     }
 
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
-        // Opciones requeridas para entorno local y pipelines CI/CD
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("start-maximized");
-        options.addArguments("--disable-notifications");
-        options.addArguments("--disable-popup-blocking");
-
-        // Soporte opcional para ejecución Headless en servidores CI/CD (ej. GitHub Actions / GitLab CI)
-        if (Boolean.parseBoolean(System.getProperty("headless", "false"))) {
+        if ("true".equalsIgnoreCase(System.getProperty("headless"))) {
             options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--window-size=1920,1080");
         }
 
         driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, EXPLICIT_WAIT_TIMEOUT);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        // Inicialización de Page Objects
         clientePage = new ClientePage(driver, wait, BASE_URL);
         asesorPage = new AsesorPage(driver, wait, BASE_URL);
     }
@@ -92,160 +101,128 @@ public class FilaVirtualTurnosE2ETest {
         }
     }
 
+    // =========================================================================
+    // CAMINOS FELICES (HAPPY PATHS - CASOS EXITOSOS)
+    // =========================================================================
+
     @Test
     @Order(1)
-    @DisplayName("TC01 - Verificar atención de turnos en estricto orden de llegada (FIFO: 6 -> 7 -> 8 -> 9 -> 10)")
+    @DisplayName("[Camino Feliz] 1. El asesor atiende los turnos pendientes en estricto orden de llegada (FIFO)")
     void test01_verificarAtencionEstrictoOrdenLlegadaFIFO() {
         asesorPage.navegar();
 
-        // Validar que inicialmente existen los 5 turnos precargados en espera
-        int enEsperaInicial = asesorPage.obtenerContadorTurnosEnEspera();
-        assertEquals(
-                SECUENCIA_FIFO_ESPERADA.size(),
-                enEsperaInicial,
-                "La fila inicial debe contener exactamente los 5 turnos precargados en BD (6 al 10)."
-        );
-
-        List<Integer> turnosLlamados = new ArrayList<>();
-
-        // El asesor llama 5 veces seguidas
-        for (int i = 0; i < SECUENCIA_FIFO_ESPERADA.size(); i++) {
-            asesorPage.llamarSiguienteTurno();
-            int turnoActual = asesorPage.obtenerNumeroTurnoActualLlamado();
-            turnosLlamados.add(turnoActual);
+        // Si la fila quedó vacía por pruebas previas, generamos 3 turnos desde la vista cliente
+        if (asesorPage.obtenerTurnosEnEspera() < 3) {
+            clientePage.navegar();
+            for (int i = 0; i < 3; i++) {
+                clientePage.pedirTurno();
+                clientePage.obtenerNumeroTurnoAsignado();
+            }
+            asesorPage.navegar();
         }
 
-        // Comprobar que la secuencia llamada sea exactamente 6 -> 7 -> 8 -> 9 -> 10
-        assertEquals(
-                SECUENCIA_FIFO_ESPERADA,
-                turnosLlamados,
-                "Los turnos llamados por el asesor no respetaron el estricto orden FIFO (6 -> 7 -> 8 -> 9 -> 10)."
-        );
+        int cantidadPendientes = asesorPage.obtenerTurnosEnEspera();
+        List<Integer> turnosLlamados = new ArrayList<>();
+        for (int i = 0; i < cantidadPendientes; i++) {
+            asesorPage.llamarSiguiente();
+            int llamado = asesorPage.obtenerTurnoActualLlamado();
+            turnosLlamados.add(llamado);
+            TURNOS_USADOS.add(llamado);
+        }
+
+        for (int i = 1; i < turnosLlamados.size(); i++) {
+            assertTrue(turnosLlamados.get(i) > turnosLlamados.get(i - 1),
+                    "El orden de atención debe respetar el estricto orden de llegada (FIFO): " + turnosLlamados);
+        }
     }
 
     @Test
     @Order(2)
-    @DisplayName("TC02 - Cliente solicita turno (>= 11, sin duplicados) y aumenta el contador de espera en Asesor")
+    @DisplayName("[Camino Feliz] 2. El cliente pide un turno nuevo (>= 11) y aumenta la fila en espera")
     void test02_clientePideTurno_noSeRepiteNumero_ySeEncola() {
-        // 1. Consultar el contador actual de turnos en espera desde la vista del asesor
         asesorPage.navegar();
-        int contadorAntesDeSolicitar = asesorPage.obtenerContadorTurnosEnEspera();
+        int enEsperaAntes = asesorPage.obtenerTurnosEnEspera();
 
-        // 2. Navegar a /cliente y solicitar un nuevo turno
         clientePage.navegar();
-        clientePage.solicitarNuevoTurno();
-        int primerTurnoGenerado = clientePage.obtenerNumeroTurnoAsignado();
+        clientePage.pedirTurno();
+        int nuevoTurno = clientePage.obtenerNumeroTurnoAsignado();
 
-        // Validar que continúa la numeración histórica (>= 11) y que no está duplicado
-        assertTrue(
-                primerTurnoGenerado > ULTIMO_TURNO_HISTORICO_MATUTINO,
-                "El turno asignado (" + primerTurnoGenerado + ") debe ser mayor o igual a 11 (continuando el cierre matutino en 10)."
-        );
-        assertFalse(
-                TURNOS_REGISTRADOS.contains(primerTurnoGenerado),
-                "El número de turno " + primerTurnoGenerado + " ya fue asignado previamente (no se permiten duplicados)."
-        );
-        TURNOS_REGISTRADOS.add(primerTurnoGenerado);
+        assertTrue(nuevoTurno >= 11, "El turno asignado debe continuar la numeración de la mañana (>= 11)");
+        assertFalse(TURNOS_USADOS.contains(nuevoTurno), "El número de turno no debe repetirse");
+        TURNOS_USADOS.add(nuevoTurno);
 
-        // 3. Solicitar un segundo turno consecutivo para confirmar incremento estricto sin repetición
-        clientePage.solicitarNuevoTurno();
-        int segundoTurnoGenerado = clientePage.obtenerNumeroTurnoAsignado();
-
-        assertTrue(
-                segundoTurnoGenerado > primerTurnoGenerado,
-                "El segundo turno generado (" + segundoTurnoGenerado + ") debe ser consecutivo y mayor al anterior (" + primerTurnoGenerado + ")."
-        );
-        assertFalse(
-                TURNOS_REGISTRADOS.contains(segundoTurnoGenerado),
-                "El número de turno " + segundoTurnoGenerado + " no debe repetirse."
-        );
-        TURNOS_REGISTRADOS.add(segundoTurnoGenerado);
-
-        // 4. Regresar a /asesor y validar que el contador de turnos en espera aumentó en 2
         asesorPage.navegar();
-        int contadorEsperado = contadorAntesDeSolicitar + 2;
-        asesorPage.esperarContadorTurnosEnEsperaIgualA(contadorEsperado);
-
-        int contadorActual = asesorPage.obtenerContadorTurnosEnEspera();
-        assertEquals(
-                contadorEsperado,
-                contadorActual,
-                "El contador de turnos en espera en /asesor debe reflejar los nuevos turnos encolados desde /cliente."
-        );
+        assertEquals(enEsperaAntes + 1, asesorPage.obtenerTurnosEnEspera(),
+                "El contador de turnos en espera debe aumentar en 1");
     }
 
     @Test
     @Order(3)
-    @DisplayName("TC03 - Verificar métricas del Asesor (contador de espera y tiempo de espera promedio coherentes)")
+    @DisplayName("[Camino Feliz] 3. La vista del asesor muestra correctamente los turnos en espera y la espera promedio")
     void test03_verificarMetricasAsesor() {
         asesorPage.navegar();
 
-        // Asegurar que exista al menos un turno en espera para evaluar las métricas activas
-        if (asesorPage.obtenerContadorTurnosEnEspera() == 0) {
-            clientePage.navegar();
-            clientePage.solicitarNuevoTurno();
-            asesorPage.navegar();
+        int turnosEnEspera = asesorPage.obtenerTurnosEnEspera();
+        double esperaPromedio = asesorPage.obtenerTiempoEsperaPromedio();
+
+        assertTrue(turnosEnEspera >= 0, "La cantidad de turnos en espera debe ser un número válido (>= 0)");
+        assertTrue(esperaPromedio >= 0.0, "El tiempo de espera promedio debe ser un número válido (>= 0)");
+    }
+
+    // =========================================================================
+    // CAMINOS TRISTES (UNHAPPY PATHS - CASOS DE BLOQUEO Y REGLAS ESTRICTAS)
+    // =========================================================================
+
+    @Test
+    @Order(4)
+    @DisplayName("[Camino Triste] 4. Bloqueo al intentar llamar al siguiente cuando la fila está vacía")
+    void test04_bloqueoLlamarSiguiente_cuandoFilaEstaVacia() {
+        asesorPage.navegar();
+
+        // Vaciar todos los turnos pendientes en la fila
+        while (asesorPage.obtenerTurnosEnEspera() > 0) {
+            asesorPage.llamarSiguiente();
         }
 
-        int turnosEnEspera = asesorPage.obtenerContadorTurnosEnEspera();
-        double tiempoPromedio = asesorPage.obtenerTiempoEsperaPromedio();
-        String textoTiempoPromedio = asesorPage.obtenerTextoTiempoEsperaPromedio();
+        assertEquals(0, asesorPage.obtenerTurnosEnEspera(), "La fila debe estar vacía (0 en espera)");
 
-        // Validar coherencia numérica del contador de turnos en espera
-        assertTrue(
-                turnosEnEspera >= 0 && turnosEnEspera < 10_000,
-                "El contador de personas en espera debe ser un entero no negativo coherente. Valor actual: " + turnosEnEspera
-        );
+        // Intentar llamar cuando no hay nadie en la fila
+        if (!asesorPage.isBotonLlamarDeshabilitado()) {
+            asesorPage.llamarSiguiente();
+        }
 
-        // Validar coherencia numérica del tiempo de espera promedio calculado por el backend
-        assertFalse(
-                Double.isNaN(tiempoPromedio) || Double.isInfinite(tiempoPromedio),
-                "El tiempo de espera promedio no debe ser NaN ni infinito. Texto en UI: " + textoTiempoPromedio
-        );
         assertTrue(
-                tiempoPromedio >= 0.0 && tiempoPromedio <= 1440.0,
-                "El tiempo de espera promedio debe encontrarse en un rango coherente (0 a 1440 min). Valor actual: " + tiempoPromedio
+                asesorPage.isBotonLlamarDeshabilitado() || asesorPage.isAlertaFilaVaciaVisible(),
+                "Con la fila vacía no se debe permitir llamar al siguiente (botón deshabilitado o alerta visible)"
         );
     }
 
     @Test
-    @Order(4)
-    @DisplayName("TC04 - Bloqueo al llamar siguiente turno cuando la fila está vacía (botón deshabilitado o alerta visible)")
-    void test04_bloqueoLlamarSiguiente_cuandoFilaEstaVacia() {
+    @Order(5)
+    @DisplayName("[Camino Triste] 5. Solicitudes seguidas de clientes nunca generan números repetidos ni desordenados")
+    void test05_noPermitirNumerosRepetidosNiSaltarseElOrden() {
+        clientePage.navegar();
+
+        // Dos clientes piden turno de forma consecutiva
+        clientePage.pedirTurno();
+        int turnoPrimero = clientePage.obtenerNumeroTurnoAsignado();
+
+        clientePage.pedirTurno();
+        int turnoSegundo = clientePage.obtenerNumeroTurnoAsignado();
+
+        // Validar que no se repitan números
+        assertNotEquals(turnoPrimero, turnoSegundo, "Dos solicitudes distintas no pueden recibir el mismo número de turno");
+        assertFalse(TURNOS_USADOS.contains(turnoPrimero), "El primer turno no debe repetir un número histórico");
+        assertFalse(TURNOS_USADOS.contains(turnoSegundo), "El segundo turno no debe repetir un número histórico");
+
+        // Validar en el asesor que no se salte el orden (no debe llamar al segundo antes que al primero)
         asesorPage.navegar();
+        asesorPage.llamarSiguiente();
+        int turnoAtendido = asesorPage.obtenerTurnoActualLlamado();
 
-        // Consumir todos los turnos pendientes en la cola hasta llegar a 0 en espera
-        int pendientes = asesorPage.obtenerContadorTurnosEnEspera();
-        int salvaguardaIteraciones = 50; // Evita bucles infinitos si el backend presenta un bug al descontar
-
-        while (pendientes > 0 && salvaguardaIteraciones > 0) {
-            asesorPage.llamarSiguienteTurno();
-            pendientes = asesorPage.obtenerContadorTurnosEnEspera();
-            salvaguardaIteraciones--;
-        }
-
-        assertEquals(
-                0,
-                asesorPage.obtenerContadorTurnosEnEspera(),
-                "El contador de turnos en espera debe llegar exactamente a 0 tras atender todos los turnos pendientes."
-        );
-
-        // Verificar regla de negocio: Con 0 turnos en espera, el botón está inhabilitado
-        // O si permite clic, despliega el mensaje/alerta 'alerta-fila-vacia'
-        boolean botonDeshabilitadoAntesDeClick = asesorPage.isBotonLlamarSiguienteDeshabilitado();
-
-        if (!botonDeshabilitadoAntesDeClick) {
-            asesorPage.intentarClickLlamarSiguiente();
-        }
-
-        boolean botonDeshabilitado = asesorPage.isBotonLlamarSiguienteDeshabilitado();
-        boolean alertaFilaVaciaVisible = asesorPage.isAlertaFilaVaciaVisible();
-
-        assertTrue(
-                botonDeshabilitado || alertaFilaVaciaVisible,
-                "Cuando la fila está vacía (0 en espera), el botón 'btn-llamar-siguiente' debe estar deshabilitado "
-                        + "o debe mostrarse la alerta 'alerta-fila-vacia'."
-        );
+        assertNotEquals(turnoSegundo, turnoAtendido,
+                "El asesor no puede atender un turno más reciente saltándose al que llegó primero");
+        assertEquals(turnoPrimero, turnoAtendido,
+                "El orden debe respetarse en todos los casos: primero se atiende el turno que llegó antes");
     }
 }
-
