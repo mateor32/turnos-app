@@ -733,6 +733,49 @@ a {
   }
 }
 
+.admin-shell {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 12% 10%, rgb(238 226 255 / 0.3), transparent 26rem),
+    var(--surface);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 64px;
+  padding: 0.7rem clamp(1.25rem, 5vw, 4.5rem);
+  border-bottom: 1px solid rgb(231 225 233 / 0.74);
+  background: rgb(255 255 255 / 0.78);
+}
+
+.admin-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  color: #58515f;
+  background: var(--surface-soft);
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-back-link {
+  margin: 0 0 0 auto;
+}
+
+.admin-main {
+  width: min(100% - 2.5rem, 1360px);
+  margin: 0 auto;
+  padding: 1.9rem 0 3.5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
