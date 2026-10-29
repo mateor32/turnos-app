@@ -4,7 +4,7 @@
       <span class="turn-logo">T</span>
       <span><strong>Turno<span>Fácil</span></strong><small>Oficina Central</small></span>
     </a>
-    <span class="demo-badge">Demo MVP</span>
+    <span class="demo-badge">En vivo</span>
     <button class="account-button" type="button" aria-label="Perfil de usuario">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c.6-3 2.8-4.5 6.5-4.5s5.9 1.5 6.5 4.5"/></svg>
     </button>
@@ -16,31 +16,37 @@
       <span class="turn-tab active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16v11H4zM7 6.5v3m10-3v3M7 14.5h.01m4 0h.01m4 0h.01"/></svg>2. Turno Asignado</span>
     </div>
 
+    @if (loading()) {
+      <section class="ticket-card"><div class="ticket-main"><p>Cargando tu turno...</p></div></section>
+    } @else if (error()) {
+      <section class="ticket-card"><div class="ticket-main"><p>{{ error() }}</p></div></section>
+    } @else if (turno(); as current) {
     <section class="ticket-card">
       <div class="ticket-heading">
         <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v4a2 2 0 0 0 0 4v2H4v-2a2 2 0 0 0 0-4V7Z"/><path d="M9 10v4m6-4v4"/></svg><strong>ATENCIÓN COMERCIAL •<br />MÓDULOS 1–5</strong></div>
-        <span class="waiting-badge"><i></i>En espera</span>
+        <span class="waiting-badge"><i></i>{{ current.estado }}</span>
       </div>
       <div class="ticket-main">
         <p>Tu código asignado</p>
-        <strong class="ticket-code">A-024</strong>
-        <span class="queue-position"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><path d="M3.5 17c.3-2.2 1.8-3.5 4.5-3.5S12.2 14.8 12.5 17m-1 0c.3-2.2 1.8-3.5 4.5-3.5s4.2 1.3 4.5 3.5"/></svg>Eres el número 3 en la fila</span>
+        <strong class="ticket-code">A-{{ current.numero.toString().padStart(3, '0') }}</strong>
+        <span class="queue-position"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><path d="M3.5 17c.3-2.2 1.8-3.5 4.5-3.5S12.2 14.8 12.5 17m-1 0c.3-2.2 1.8-3.5 4.5-3.5s4.2 1.3 4.5 3.5"/></svg>Eres el número {{ position() }} en la fila</span>
       </div>
       <div class="ticket-details">
-        <div><span class="detail-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></span><span>Tiempo estimado<strong>15 min</strong></span></div>
+        <div><span class="detail-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></span><span>Tiempo estimado<strong>{{ pendingAhead() * 4 }} min</strong></span></div>
         <div><span class="detail-icon screen-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="12" rx="1"/><path d="M9 20h6m-3-3v3"/></svg></span><span>Llamado por<strong>Pantalla</strong></span></div>
       </div>
     </section>
 
     <section class="progress-card">
-      <div class="progress-title"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5M8 4.5a9 9 0 0 0 0 15"/></svg>Avance de la fila</span><strong>Faltan 2 personas</strong></div>
+      <div class="progress-title"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5M8 4.5a9 9 0 0 0 0 15"/></svg>Avance de la fila</span><strong>Faltan {{ pendingAhead() }} personas</strong></div>
       <div class="progress-bars"><i></i><i></i><i></i><i></i></div>
-      <div class="progress-labels"><span>A-022 atendido</span><span>A-023 en ventanilla</span><strong>A-024 (Tú)</strong></div>
+      <div class="progress-labels"><span>Turnos atendidos</span><span>Fila actual</span><strong>A-{{ current.numero.toString().padStart(3, '0') }} (Tú)</strong></div>
     </section>
 
     <section class="notice-card"><span class="notice-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17h12l-1.5-2v-4a4.5 4.5 0 0 0-9 0v4L6 17Zm4 2h4"/></svg></span><div><strong>Te avisaremos cuando se acerque tu turno</strong><p>Esta pantalla cambiará de color e indicará tu módulo específico cuando el asesor pulse llamar. No necesitas descargar nada adicional.</p></div></section>
     <section class="movement-card"><span class="movement-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h13a2 2 0 0 1 2 2v3H8a3 3 0 0 1-3-3V8Zm3 5v5m-2 0h8"/></svg></span><div><strong>Libertad total de movimiento</strong><p>Puedes aguardar cómodamente en las inmediaciones, cafetería o consultar esta pantalla en tiempo real.</p></div></section>
-    <div class="turn-actions"><button class="refresh-button" type="button" (click)="refreshTurn()"><span>↻</span>Actualizar turno</button><a class="cancel-button" routerLink="/clientes">× <span>Cancelar</span></a></div>
+    <div class="turn-actions"><button class="refresh-button" type="button" (click)="refreshTurn()"><span>↻</span>Actualizar turno</button><button class="cancel-button" type="button" (click)="cancelTurn()">× <span>Cancelar</span></button></div>
+    }
   </div>
 
   <nav class="bottom-nav" aria-label="Navegación principal"><a routerLink="/"><span>⊞</span>Inicio</a><a href="#asesor"><span>♧</span>Panel Asesor</a><a class="selected" href="#turno"><span>▣</span>Mi Turno</a></nav>

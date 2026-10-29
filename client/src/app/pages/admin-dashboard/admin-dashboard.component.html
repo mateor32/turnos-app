@@ -50,7 +50,7 @@
 
         @if (currentTicket(); as ticket) {
           <div class="admin-ticket-display" [class.is-recalling]="isRecalling()">
-            <span class="admin-ticket-code">{{ ticket.code }}</span>
+            <span class="admin-ticket-code">A-{{ ticket.numero.toString().padStart(3, '0') }}</span>
             <span class="admin-ticket-timer">
               Tiempo transcurrido: <strong>{{ elapsedLabel() }}</strong>
             </span>
@@ -58,11 +58,11 @@
           <div class="admin-ticket-meta">
             <div>
               <span class="card-kicker">Cliente / Titular</span>
-              <strong>{{ ticket.clientName }}</strong>
+              <strong>Cliente sin identificar</strong>
             </div>
             <div>
               <span class="card-kicker">Trámite solicitado</span>
-              <strong>{{ ticket.service }}</strong>
+              <strong>Atención comercial</strong>
             </div>
           </div>
         } @else {
@@ -130,16 +130,12 @@
                 <tr>
                   <td>
                     <div class="admin-queue-ticket">
-                      <span class="admin-queue-code">{{ ticket.code }}</span>
-                      <span class="admin-queue-service">{{ ticket.service }}</span>
+                      <span class="admin-queue-code">A-{{ ticket.numero.toString().padStart(3, '0') }}</span>
+                      <span class="admin-queue-service">Atención comercial</span>
                     </div>
                   </td>
                   <td>
-                    @if (ticket.priority) {
-                      <span class="status-badge success">{{ ticket.priorityLabel }}</span>
-                    } @else {
-                      <span class="status-badge operator">Estándar</span>
-                    }
+                    <span class="status-badge operator">Estándar</span>
                   </td>
                   <td>{{ i + 1 }}</td>
                   <td>~{{ estimatedWait(i) }} min</td>

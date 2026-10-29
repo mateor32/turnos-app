@@ -1,66 +1,14 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
-interface QueueTicket {
-  id: number;
-  code: string;
-  clientName: string;
-  service: string;
-  priority: boolean;
-  priorityLabel?: string;
-  requestedAt: number;
-}
+import { forkJoin, Subscription } from 'rxjs';
+import { Turno, TurnoService } from '../../services/turno.service';
 
 const SERVICE_MINUTES = 4;
 
-function minutesAgo(minutes: number): number {
-  return Date.now() - minutes * 60_000;
-}
-
 function formatElapsed(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60)
-    .toString()
-    .padStart(2, '0');
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
   const seconds = (totalSeconds % 60).toString().padStart(2, '0');
   return `${minutes}:${seconds}`;
-}
-
-function createSeedQueue(): QueueTicket[] {
-  return [
-    {
-      id: 1,
-      code: 'A-024',
-      clientName: 'Jorge Ramírez Peña',
-      service: 'Adulto mayor · 74 años',
-      priority: true,
-      priorityLabel: 'Prioritario',
-      requestedAt: minutesAgo(18),
-    },
-    {
-      id: 2,
-      code: 'A-025',
-      clientName: 'Valentina Gómez Ruiz',
-      service: 'Asesoría crédito hipotecario',
-      priority: false,
-      requestedAt: minutesAgo(14),
-    },
-    {
-      id: 3,
-      code: 'A-026',
-      clientName: 'Andrés Felipe Castro',
-      service: 'Emisión certificado bancario',
-      priority: false,
-      requestedAt: minutesAgo(9),
-    },
-    {
-      id: 4,
-      code: 'A-027',
-      clientName: 'Laura Beltrán Suárez',
-      service: 'Actualización de datos',
-      priority: false,
-      requestedAt: minutesAgo(3),
-    },
-  ];
 }
 
 @Component({
@@ -70,51 +18,37 @@ function createSeedQueue(): QueueTicket[] {
   styleUrl: './admin-dashboard.component.css',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  protected readonly pendingQueue = signal<QueueTicket[]>(createSeedQueue());
-  protected readonly currentTicket = signal<QueueTicket | null>({
-    id: 0,
-    code: 'A-023',
-    clientName: 'Mariana Restrepo Ortiz',
-    service: 'Apertura cuenta nómina',
-    priority: false,
-    requestedAt: minutesAgo(8),
-  });
-  protected readonly servedToday = signal(22);
-  protected readonly waitTimesMinutes = signal<number[]>([5, 6, 4, 7, 5]);
-  protected readonly elapsedSeconds = signal(225);
+  private readonly turnoService = inject(TurnoService);
+  protected readonly pendingQueue = signal<Turno[]>([]);
+  protected readonly currentTicket = signal<Turno | null>(null);
+  protected readonly servedToday = signal(0);
+  protected readonly averageWaitMinutes = signal(0);
+  protected readonly elapsedSeconds = signal(0);
   protected readonly isRecalling = signal(false);
+  protected readonly loading = signal(true);
+  protected readonly error = signal('');
 
   protected readonly sortedQueue = computed(() =>
-    [...this.pendingQueue()].sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority ? -1 : 1;
-      return a.requestedAt - b.requestedAt;
-    }),
+    [...this.pendingQueue()].sort((a, b) => a.horaSolicitud.localeCompare(b.horaSolicitud)),
   );
-
   protected readonly waitingCount = computed(() => this.pendingQueue().length);
-
-  protected readonly averageWaitMinutes = computed(() => {
-    const times = this.waitTimesMinutes();
-    if (!times.length) return 0;
-    return Math.round(times.reduce((total, value) => total + value, 0) / times.length);
-  });
-
   protected readonly elapsedLabel = computed(() => formatElapsed(this.elapsedSeconds()));
 
   private timerHandle?: ReturnType<typeof setInterval>;
   private recallHandle?: ReturnType<typeof setTimeout>;
+  private request?: Subscription;
 
   ngOnInit(): void {
+    this.loadDashboard();
     this.timerHandle = setInterval(() => {
-      if (this.currentTicket()) {
-        this.elapsedSeconds.update((seconds) => seconds + 1);
-      }
+      if (this.currentTicket()) this.elapsedSeconds.update((seconds) => seconds + 1);
     }, 1000);
   }
 
   ngOnDestroy(): void {
     if (this.timerHandle) clearInterval(this.timerHandle);
     if (this.recallHandle) clearTimeout(this.recallHandle);
+    this.request?.unsubscribe();
   }
 
   protected estimatedWait(position: number): number {
@@ -122,30 +56,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   protected callNext(): void {
-    if (this.currentTicket()) {
-      this.servedToday.update((count) => count + 1);
-    }
-
-    const queue = this.sortedQueue();
-    const next = queue[0];
-
-    if (!next) {
-      this.currentTicket.set(null);
-      return;
-    }
-
-    this.pendingQueue.update((tickets) => tickets.filter((ticket) => ticket.id !== next.id));
-    const waitMinutes = Math.max(0, Math.round((Date.now() - next.requestedAt) / 60_000));
-    this.waitTimesMinutes.update((times) => [...times, waitMinutes]);
-    this.currentTicket.set(next);
-    this.elapsedSeconds.set(0);
+    this.turnoService.siguiente().subscribe({
+      next: (turno) => this.turnoService.atender(turno.id).subscribe({
+        next: (atendido) => {
+          this.currentTicket.set(atendido);
+          this.elapsedSeconds.set(0);
+          this.loadDashboard(false);
+        },
+        error: () => this.showError('No fue posible llamar al siguiente turno.'),
+      }),
+      error: () => this.showError('No hay turnos pendientes para llamar.'),
+    });
   }
 
   protected completeAttention(): void {
-    if (!this.currentTicket()) return;
-    this.servedToday.update((count) => count + 1);
     this.currentTicket.set(null);
     this.elapsedSeconds.set(0);
+    this.loadDashboard(false);
   }
 
   protected recall(): void {
@@ -153,5 +80,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isRecalling.set(true);
     if (this.recallHandle) clearTimeout(this.recallHandle);
     this.recallHandle = setTimeout(() => this.isRecalling.set(false), 1200);
+  }
+
+  private loadDashboard(showLoading = true): void {
+    if (showLoading) this.loading.set(true);
+    this.request?.unsubscribe();
+    this.request = forkJoin({
+      turnos: this.turnoService.listarTodos(),
+      promedio: this.turnoService.promedioEspera(),
+    }).subscribe({
+      next: ({ turnos, promedio }) => {
+        this.pendingQueue.set(turnos.filter((turno) => turno.estado === 'pendiente'));
+        this.servedToday.set(turnos.filter((turno) => turno.estado === 'atendido').length);
+        this.averageWaitMinutes.set(Math.round(promedio));
+        this.loading.set(false);
+      },
+      error: () => this.showError('No fue posible cargar la fila. Verifica que el backend esté disponible.'),
+    });
+  }
+
+  private showError(message: string): void {
+    this.error.set(message);
+    this.loading.set(false);
   }
 }
