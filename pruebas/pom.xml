@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.turnos.qa</groupId>
+    <artifactId>fila-virtual-e2e-tests</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Fila Virtual de Turnos - Suite QA (E2E Selenium + Base de Datos PostgreSQL)</name>
+    <description>Pruebas E2E funcionales con Selenium WebDriver 4 y pruebas de persistencia relacional en PostgreSQL/Supabase con JUnit 5</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <selenium.version>4.25.0</selenium.version>
+        <junit.jupiter.version>5.11.2</junit.jupiter.version>
+        <webdrivermanager.version>5.9.2</webdrivermanager.version>
+        <postgresql.version>42.7.4</postgresql.version>
+        <surefire.plugin.version>3.5.1</surefire.plugin.version>
+    </properties>
+
+    <dependencies>
+        <!-- Selenium WebDriver 4.x (Pruebas E2E Frontend/Backend) -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- WebDriverManager para gestión automática de ChromeDriver -->
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Driver JDBC oficial de PostgreSQL para conexión directa a Supabase / PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 (Jupiter API y Engine) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Plugin Surefire para ejecutar pruebas JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.plugin.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- Propiedades para Pruebas E2E Selenium -->
+                        <base.url>${base.url}</base.url>
+                        <headless>${headless}</headless>
+                        <!-- Propiedades para Pruebas de Base de Datos (PostgreSQL / Supabase) -->
+                        <db.url>${db.url}</db.url>
+                        <db.user>${db.user}</db.user>
+                        <db.password>${db.password}</db.password>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
