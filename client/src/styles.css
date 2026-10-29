@@ -776,6 +776,51 @@ a {
   padding: 1.9rem 0 3.5rem;
 }
 
+.admin-page-head h1 {
+  margin: 0.3rem 0 0.35rem;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  letter-spacing: -0.045em;
+}
+
+.admin-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.admin-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.72rem;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-metric-value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.admin-metric-value.accent {
+  color: var(--primary);
+}
+
+.admin-metric-label {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
