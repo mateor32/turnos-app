@@ -8,7 +8,9 @@
     <p class="card-kicker">{{ isAdmin ? 'Consola operativa' : 'Portal de usuario' }}</p>
     <h1>{{ isAdmin ? 'Panel asesor' : 'Solicita tu turno' }}</h1>
     <p>{{ isAdmin ? 'Ingresa para gestionar la fila y llamar al siguiente usuario.' : 'Ingresa tus datos para obtener un ticket digital y seguir tu turno.' }}</p>
-    <button class="button button-primary" type="button">{{ isAdmin ? 'Ingresar al panel' : 'Comenzar' }} <span>→</span></button>
+    <a class="button button-primary" [routerLink]="isAdmin ? '/administradores' : '/clientes/turno'">
+      {{ isAdmin ? 'Ingresar al panel' : 'Solicitar turno' }} <span>→</span>
+    </a>
     <a class="back-link" routerLink="/">← Volver al inicio</a>
   </section>
 </main>

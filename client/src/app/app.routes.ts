@@ -1,9 +1,15 @@
 import { Routes } from '@angular/router';
 import { AccessComponent } from './pages/access/access.component';
+import { ClientComponent } from './pages/client/client.component';
 import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'TurnoFácil | Gestiona tu turno' },
+  {
+    path: 'clientes/turno',
+    component: ClientComponent,
+    title: 'Mi turno | TurnoFácil',
+  },
   {
     path: 'clientes',
     component: AccessComponent,
