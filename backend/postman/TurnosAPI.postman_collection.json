@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "7a8e0f20-3c0a-4a0b-9e1a-turnos-collection",
+    "name": "Turnos API",
+    "description": "Colección completa de endpoints del backend de Turnos. Base URL en la variable {{baseUrl}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "turnoId",
+      "value": "1",
+      "type": "string",
+      "description": "ID del turno usado en requests que necesitan path parameter"
+    }
+  ],
+  "item": [
+    {
+      "name": "Listar todos los turnos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos"]
+        },
+        "description": "Devuelve todos los turnos ordenados por horaSolicitud ascendente."
+      },
+      "response": []
+    },
+    {
+      "name": "Buscar turno por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/{{turnoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "{{turnoId}}"]
+        },
+        "description": "Devuelve un turno por su ID. 404 si no existe."
+      },
+      "response": []
+    },
+    {
+      "name": "Filtrar por estado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/estado/pendiente",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "estado", "pendiente"]
+        },
+        "description": "Filtra turnos por estado. Valores: pendiente | atendido | cancelado."
+      },
+      "response": []
+    },
+    {
+      "name": "Siguiente pendiente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/siguiente",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "siguiente"]
+        },
+        "description": "Devuelve el próximo turno pendiente (el más antiguo). 404 si no hay pendientes."
+      },
+      "response": []
+    },
+    {
+      "name": "Espera promedio",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/espera-promedio",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "espera-promedio"]
+        },
+        "description": "Devuelve el promedio en minutos entre horaSolicitud y horaAtencion de los turnos atendidos."
+      },
+      "response": []
+    },
+    {
+      "name": "Contar pendientes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/pendientes/count",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "pendientes", "count"]
+        },
+        "description": "Devuelve la cantidad de turnos en estado pendiente."
+      },
+      "response": []
+    },
+    {
+      "name": "Crear turno",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const data = pm.response.json();",
+              "    pm.collectionVariables.set('turnoId', data.id);",
+              "    console.log('turnoId actualizado a ' + data.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos"]
+        },
+        "description": "Crea un turno nuevo. No requiere body: el backend asigna numero y horaSolicitud. Al tener éxito, el script guarda el id creado en la variable {{turnoId}}."
+      },
+      "response": []
+    },
+    {
+      "name": "Atender turno",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/{{turnoId}}/atender",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "{{turnoId}}", "atender"]
+        },
+        "description": "Marca el turno como atendido y setea horaAtencion. 400 si el turno no está pendiente."
+      },
+      "response": []
+    },
+    {
+      "name": "Cancelar turno",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/turnos/{{turnoId}}/cancelar",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "turnos", "{{turnoId}}", "cancelar"]
+        },
+        "description": "Marca el turno como cancelado. 400 si el turno no está pendiente."
+      },
+      "response": []
+    }
+  ]
+}
