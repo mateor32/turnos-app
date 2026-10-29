@@ -1,8 +1,18 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Turno, TurnoService } from '../../services/turno.service';
 
 interface QueueTicket {
   id: number;
+  numero: number;
   code: string;
   clientName: string;
   service: string;
@@ -13,10 +23,6 @@ interface QueueTicket {
 
 const SERVICE_MINUTES = 4;
 
-function minutesAgo(minutes: number): number {
-  return Date.now() - minutes * 60_000;
-}
-
 function formatElapsed(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60)
     .toString()
@@ -25,42 +31,24 @@ function formatElapsed(totalSeconds: number): string {
   return `${minutes}:${seconds}`;
 }
 
-function createSeedQueue(): QueueTicket[] {
-  return [
-    {
-      id: 1,
-      code: 'A-024',
-      clientName: 'Jorge Ramírez Peña',
-      service: 'Adulto mayor · 74 años',
-      priority: true,
-      priorityLabel: 'Prioritario',
-      requestedAt: minutesAgo(18),
-    },
-    {
-      id: 2,
-      code: 'A-025',
-      clientName: 'Valentina Gómez Ruiz',
-      service: 'Asesoría crédito hipotecario',
-      priority: false,
-      requestedAt: minutesAgo(14),
-    },
-    {
-      id: 3,
-      code: 'A-026',
-      clientName: 'Andrés Felipe Castro',
-      service: 'Emisión certificado bancario',
-      priority: false,
-      requestedAt: minutesAgo(9),
-    },
-    {
-      id: 4,
-      code: 'A-027',
-      clientName: 'Laura Beltrán Suárez',
-      service: 'Actualización de datos',
-      priority: false,
-      requestedAt: minutesAgo(3),
-    },
-  ];
+function parseLocalTime(value: string | null | undefined): number {
+  if (!value) return Date.now();
+  const [hh, mm, ss] = value.split(':').map((part) => parseInt(part, 10) || 0);
+  const now = new Date();
+  now.setHours(hh, mm, ss ?? 0, 0);
+  return now.getTime();
+}
+
+function turnoToTicket(turno: Turno): QueueTicket {
+  return {
+    id: turno.id,
+    numero: turno.numero,
+    code: `A-${turno.numero.toString().padStart(3, '0')}`,
+    clientName: 'Cliente',
+    service: 'Atención general',
+    priority: false,
+    requestedAt: parseLocalTime(turno.horaSolicitud),
+  };
 }
 
 @Component({
@@ -69,47 +57,41 @@ function createSeedQueue(): QueueTicket[] {
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy {
-  protected readonly pendingQueue = signal<QueueTicket[]>(createSeedQueue());
-  protected readonly currentTicket = signal<QueueTicket | null>({
-    id: 0,
-    code: 'A-023',
-    clientName: 'Mariana Restrepo Ortiz',
-    service: 'Apertura cuenta nómina',
-    priority: false,
-    requestedAt: minutesAgo(8),
-  });
-  protected readonly servedToday = signal(22);
-  protected readonly waitTimesMinutes = signal<number[]>([5, 6, 4, 7, 5]);
-  protected readonly elapsedSeconds = signal(225);
+export class AdminDashboardComponent implements OnDestroy {
+  private readonly turnoService = inject(TurnoService);
+
+  protected readonly pendingQueue = signal<QueueTicket[]>([]);
+  protected readonly currentTicket = signal<QueueTicket | null>(null);
+  protected readonly servedToday = signal(0);
+  protected readonly averageWaitFromBackend = signal(0);
+  protected readonly elapsedSeconds = signal(0);
   protected readonly isRecalling = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly sortedQueue = computed(() =>
-    [...this.pendingQueue()].sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority ? -1 : 1;
-      return a.requestedAt - b.requestedAt;
-    }),
+    [...this.pendingQueue()].sort((a, b) => a.requestedAt - b.requestedAt),
   );
 
   protected readonly waitingCount = computed(() => this.pendingQueue().length);
 
-  protected readonly averageWaitMinutes = computed(() => {
-    const times = this.waitTimesMinutes();
-    if (!times.length) return 0;
-    return Math.round(times.reduce((total, value) => total + value, 0) / times.length);
-  });
+  protected readonly averageWaitMinutes = computed(() =>
+    Math.round(this.averageWaitFromBackend()),
+  );
 
   protected readonly elapsedLabel = computed(() => formatElapsed(this.elapsedSeconds()));
 
   private timerHandle?: ReturnType<typeof setInterval>;
   private recallHandle?: ReturnType<typeof setTimeout>;
 
-  ngOnInit(): void {
-    this.timerHandle = setInterval(() => {
-      if (this.currentTicket()) {
-        this.elapsedSeconds.update((seconds) => seconds + 1);
-      }
-    }, 1000);
+  constructor() {
+    afterNextRender(() => {
+      this.reload();
+      this.timerHandle = setInterval(() => {
+        if (this.currentTicket()) {
+          this.elapsedSeconds.update((seconds) => seconds + 1);
+        }
+      }, 1000);
+    });
   }
 
   ngOnDestroy(): void {
@@ -122,28 +104,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   protected callNext(): void {
-    if (this.currentTicket()) {
-      this.servedToday.update((count) => count + 1);
-    }
-
-    const queue = this.sortedQueue();
-    const next = queue[0];
-
-    if (!next) {
-      this.currentTicket.set(null);
-      return;
-    }
-
-    this.pendingQueue.update((tickets) => tickets.filter((ticket) => ticket.id !== next.id));
-    const waitMinutes = Math.max(0, Math.round((Date.now() - next.requestedAt) / 60_000));
-    this.waitTimesMinutes.update((times) => [...times, waitMinutes]);
-    this.currentTicket.set(next);
-    this.elapsedSeconds.set(0);
+    this.turnoService.siguientePendiente().subscribe({
+      next: (turno) => {
+        if (!turno) return;
+        this.turnoService.atender(turno.id).subscribe({
+          next: (atendido) => {
+            this.currentTicket.set(turnoToTicket(atendido));
+            this.elapsedSeconds.set(0);
+            this.servedToday.update((n) => n + 1);
+            this.reload();
+          },
+          error: (err: HttpErrorResponse) => this.showError(err),
+        });
+      },
+      error: () => {
+        this.errorMessage.set('No hay turnos pendientes.');
+      },
+    });
   }
 
   protected completeAttention(): void {
     if (!this.currentTicket()) return;
-    this.servedToday.update((count) => count + 1);
     this.currentTicket.set(null);
     this.elapsedSeconds.set(0);
   }
@@ -153,5 +134,31 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isRecalling.set(true);
     if (this.recallHandle) clearTimeout(this.recallHandle);
     this.recallHandle = setTimeout(() => this.isRecalling.set(false), 1200);
+  }
+
+  private reload(): void {
+    this.turnoService.filtrarPorEstado('pendiente').subscribe({
+      next: (turnos) => this.pendingQueue.set(turnos.map(turnoToTicket)),
+      error: (err: HttpErrorResponse) => this.showError(err),
+    });
+
+    this.turnoService.esperaPromedio().subscribe({
+      next: (promedio) => this.averageWaitFromBackend.set(promedio),
+      error: () => this.averageWaitFromBackend.set(0),
+    });
+
+    this.turnoService.filtrarPorEstado('atendido').subscribe({
+      next: (turnos) => this.servedToday.set(turnos.length),
+      error: () => {},
+    });
+  }
+
+  private showError(err: HttpErrorResponse): void {
+    const msg =
+      typeof err.error === 'string' && err.error
+        ? err.error
+        : err.message || 'Error al comunicarse con el servidor.';
+    this.errorMessage.set(msg);
+    setTimeout(() => this.errorMessage.set(null), 4000);
   }
 }
