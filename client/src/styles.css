@@ -733,6 +733,339 @@ a {
   }
 }
 
+.admin-shell {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 12% 10%, rgb(238 226 255 / 0.3), transparent 26rem),
+    var(--surface);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 64px;
+  padding: 0.7rem clamp(1.25rem, 5vw, 4.5rem);
+  border-bottom: 1px solid rgb(231 225 233 / 0.74);
+  background: rgb(255 255 255 / 0.78);
+}
+
+.admin-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  color: #58515f;
+  background: var(--surface-soft);
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-back-link {
+  margin: 0 0 0 auto;
+}
+
+.admin-main {
+  width: min(100% - 2.5rem, 1360px);
+  margin: 0 auto;
+  padding: 1.9rem 0 3.5rem;
+}
+
+.admin-page-head h1 {
+  margin: 0.3rem 0 0.35rem;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  letter-spacing: -0.045em;
+}
+
+.admin-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.admin-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.72rem;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-metric-value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.admin-metric-value.accent {
+  color: var(--primary);
+}
+
+.admin-metric-label {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+
+.admin-current-card,
+.admin-queue-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.6rem 1.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-current-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-ticket-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.6rem 1rem;
+  margin: 1.1rem 0;
+  border-radius: 0.72rem;
+  background: var(--surface-soft);
+  text-align: center;
+  transition: background 220ms ease;
+}
+
+.admin-ticket-display.is-recalling {
+  background: var(--primary-soft);
+}
+
+.admin-ticket-code {
+  color: var(--primary);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.admin-ticket-timer {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.admin-ticket-timer strong {
+  color: #302c33;
+}
+
+.admin-empty-ticket {
+  padding: 2.2rem 1rem;
+  margin: 1.1rem 0;
+  border: 1px dashed var(--line);
+  border-radius: 0.72rem;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.admin-ticket-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 0.62rem;
+  background: var(--surface-soft);
+}
+
+.admin-ticket-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.admin-ticket-meta strong {
+  overflow: hidden;
+  color: #302c33;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.3rem;
+}
+
+.admin-call-button {
+  width: 100%;
+  min-height: 3rem;
+  font-size: 0.8rem;
+}
+
+.admin-actions-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.admin-secondary-button {
+  min-height: 2.6rem;
+  color: #423b46;
+  background: var(--surface-soft);
+  font-size: 0.7rem;
+}
+
+.admin-secondary-button:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none !important;
+}
+
+.admin-notice {
+  margin: 0.9rem 0 0;
+  color: var(--primary-deep);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.admin-queue-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-queue-head h2 {
+  margin: 0.2rem 0 0;
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+
+.admin-queue-table {
+  width: 100%;
+  margin-top: 1.2rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-queue-table th {
+  padding: 0.6rem 0.75rem;
+  color: var(--muted);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--surface-soft);
+}
+
+.admin-queue-table th:first-child {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.admin-queue-table th:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.admin-queue-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+}
+
+.admin-queue-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-queue-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.admin-queue-code {
+  color: #29262b;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.admin-queue-service {
+  color: var(--muted);
+  font-size: 0.64rem;
+}
+
+.admin-empty-queue {
+  padding: 2.4rem 1rem;
+  margin-top: 1.2rem;
+  border: 1px dashed var(--line);
+  border-radius: 0.72rem;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@media (max-width: 1080px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .admin-back-link {
+    margin-left: 0;
+  }
+
+  .admin-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-actions-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-queue-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
