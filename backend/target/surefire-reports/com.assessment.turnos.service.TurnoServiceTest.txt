@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.assessment.turnos.service.TurnoServiceTest
+-------------------------------------------------------------------------------
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.451 s -- in com.assessment.turnos.service.TurnoServiceTest
