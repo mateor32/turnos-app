@@ -11,8 +11,8 @@
   --primary-deep: #4f08ae;
   --primary-soft: #eee2ff;
   --success: #087a51;
-  --shadow-card: 0 8px 22px rgb(75 37 102 / 0.08);
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  --shadow-card: 0 12px 28px rgb(75 37 102 / 0.07);
+  font-family: 'Aptos', 'Segoe UI', sans-serif;
   color: var(--ink);
   background: var(--surface);
 }
@@ -29,6 +29,11 @@ body {
   min-width: 320px;
   margin: 0;
   background: var(--surface);
+}
+
+::selection {
+  color: #fff;
+  background: var(--primary);
 }
 
 button,
@@ -200,7 +205,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: clamp(2.4rem, 6vw, 4.8rem) 1.25rem 1.5rem;
+  padding: clamp(3rem, 7vw, 5.5rem) 1.25rem 2rem;
   text-align: center;
 }
 
@@ -239,7 +244,7 @@ a {
 .hero-section h1 {
   margin: 0.55rem 0 0.45rem;
   color: #222024;
-  font-size: clamp(2rem, 4.3vw, 3.25rem);
+  font-size: clamp(2.35rem, 5vw, 4rem);
   font-weight: 800;
   letter-spacing: -0.055em;
   line-height: 1.1;
@@ -268,9 +273,19 @@ a {
 }
 
 .trust-strip b {
+  display: inline-flex;
+  align-items: center;
   margin-right: 0.25rem;
   color: var(--success);
   font-size: 0.75rem;
+}
+
+.trust-strip svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
 }
 
 .access-grid {
@@ -286,7 +301,7 @@ a {
   overflow: hidden;
   padding: 1.55rem 1.65rem 1.6rem;
   border: 1px solid var(--line);
-  border-radius: 0.72rem;
+  border-radius: 1rem;
   background: var(--surface-card);
   box-shadow: var(--shadow-card);
 }
@@ -312,8 +327,17 @@ a {
   height: 2.45rem;
   place-items: center;
   border-radius: 0.62rem;
-  font-size: 1.45rem;
   font-weight: 700;
+}
+
+.card-icon svg,
+.status-symbol svg,
+.metric-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
 }
 
 .user-icon {
@@ -339,7 +363,7 @@ a {
 .card-kicker {
   margin: 1.1rem 0 0.3rem;
   color: var(--primary);
-  font-size: 0.59rem;
+  font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -356,7 +380,7 @@ a {
   min-height: 2.85rem;
   margin: 0.45rem 0 1rem;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   line-height: 1.55;
 }
 
@@ -420,21 +444,17 @@ a {
   gap: 0.75rem;
   padding: 0.75rem 0 1.15rem;
   color: #625a67;
-  font-size: 0.59rem;
+  font-size: 0.68rem;
 }
 
 .feature-row span {
   white-space: nowrap;
 }
 
-.feature-row span:first-child::first-letter {
-  color: var(--primary);
-}
-
 .card-button {
   width: 100%;
   min-height: 2.7rem;
-  font-size: 0.68rem;
+  font-size: 0.76rem;
 }
 
 .card-button span {
@@ -502,7 +522,7 @@ a {
 .metric small {
   overflow: hidden;
   color: #807986;
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -523,7 +543,7 @@ a {
   gap: 2.4rem;
   padding: 0.9rem 1.25rem 2.1rem;
   color: #79717e;
-  font-size: 0.56rem;
+  font-size: 0.64rem;
 }
 
 .service-note b {
@@ -572,9 +592,7 @@ a {
   min-height: 100dvh;
   place-items: center;
   padding: 2rem 1.25rem;
-  background:
-    radial-gradient(circle at 50% 30%, rgb(238 226 255 / 0.7), transparent 30rem),
-    var(--surface);
+  background: var(--surface);
 }
 
 .access-brand {
@@ -587,7 +605,7 @@ a {
   width: min(100%, 28rem);
   padding: 2.3rem;
   border: 1px solid var(--line);
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   background: #fff;
   box-shadow: var(--shadow-card);
   text-align: center;
@@ -735,9 +753,7 @@ a {
 
 .admin-shell {
   min-height: 100dvh;
-  background:
-    radial-gradient(circle at 12% 10%, rgb(238 226 255 / 0.3), transparent 26rem),
-    var(--surface);
+  background: var(--surface);
 }
 
 .admin-header {
@@ -747,7 +763,7 @@ a {
   min-height: 64px;
   padding: 0.7rem clamp(1.25rem, 5vw, 4.5rem);
   border-bottom: 1px solid rgb(231 225 233 / 0.74);
-  background: rgb(255 255 255 / 0.78);
+  background: #fff;
 }
 
 .admin-header-meta {
@@ -801,7 +817,7 @@ a {
   gap: 0.3rem;
   padding: 1.1rem 1.25rem;
   border: 1px solid var(--line);
-  border-radius: 0.72rem;
+  border-radius: 1rem;
   background: var(--surface-card);
   box-shadow: var(--shadow-card);
 }
@@ -835,7 +851,7 @@ a {
   overflow: hidden;
   padding: 1.6rem 1.7rem;
   border: 1px solid var(--line);
-  border-radius: 0.8rem;
+  border-radius: 1rem;
   background: var(--surface-card);
   box-shadow: var(--shadow-card);
 }
@@ -982,7 +998,7 @@ a {
 .admin-queue-table th {
   padding: 0.6rem 0.75rem;
   color: var(--muted);
-  font-size: 0.56rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -1000,7 +1016,7 @@ a {
 .admin-queue-table td {
   padding: 0.75rem;
   border-bottom: 1px solid var(--line);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .admin-queue-table tr:last-child td {
@@ -1034,6 +1050,63 @@ a {
   color: var(--muted);
   font-size: 0.78rem;
   text-align: center;
+}
+
+.admin-state {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-state strong {
+  display: block;
+}
+
+.admin-state p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-state-error {
+  border-color: #efc8ca;
+  background: #fffafa;
+}
+
+.admin-state .state-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 1.5rem;
+  border: 3px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+.admin-state .state-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #9c1c24;
+  background: #fde4e4;
+  font-weight: 800;
+}
+
+.admin-state .button {
+  margin-left: auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 1080px) {
