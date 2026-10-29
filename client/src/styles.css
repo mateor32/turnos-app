@@ -831,6 +831,8 @@ a {
 
 .admin-current-card,
 .admin-queue-card {
+  position: relative;
+  overflow: hidden;
   padding: 1.6rem 1.7rem;
   border: 1px solid var(--line);
   border-radius: 0.8rem;
