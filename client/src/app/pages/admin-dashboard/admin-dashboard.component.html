@@ -13,11 +13,22 @@
 
   <main class="admin-main">
     <div class="admin-page-head">
-      <p class="card-kicker">Consola operativa</p>
       <h1>Panel del asesor</h1>
       <p class="admin-subtitle">Gestiona la fila de atención y llama al siguiente turno disponible.</p>
     </div>
 
+    @if (loading()) {
+      <section class="admin-state" aria-live="polite">
+        <span class="state-spinner" aria-hidden="true"></span>
+        <div><strong>Cargando la fila</strong><p>Estamos sincronizando los turnos disponibles.</p></div>
+      </section>
+    } @else if (error()) {
+      <section class="admin-state admin-state-error" aria-live="assertive">
+        <span class="state-icon" aria-hidden="true">!</span>
+        <div><strong>No pudimos cargar el panel</strong><p>{{ error() }}</p></div>
+        <button class="button admin-secondary-button" type="button" (click)="loadDashboard()">Intentar de nuevo</button>
+      </section>
+    } @else {
     <section class="admin-metrics" aria-label="Indicadores de la fila">
       <div class="admin-metric-card">
         <span class="card-kicker">Personas en espera</span>
@@ -150,5 +161,6 @@
         }
       </article>
     </section>
+    }
   </main>
 </div>

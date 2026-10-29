@@ -82,7 +82,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.recallHandle = setTimeout(() => this.isRecalling.set(false), 1200);
   }
 
-  private loadDashboard(showLoading = true): void {
+  protected loadDashboard(showLoading = true): void {
     if (showLoading) this.loading.set(true);
     this.request?.unsubscribe();
     this.request = forkJoin({
