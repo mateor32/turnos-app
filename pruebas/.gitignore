@@ -1,0 +1,51 @@
+# Directorio de compilación y reportes de Maven (Surefire / Failsafe)
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Archivos compilados de Java
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# Logs y capturas de Selenium / ChromeDriver / WebDriverManager
+chromedriver.log
+geckodriver.log
+selenium- screenshot-*.png
+screenshots/
+test-output/
+
+# Variables de entorno y credenciales locales (ej. conexión Supabase)
+.env
+.env.*
+*.local.properties
+
+# Configuraciones de IDEs (IntelliJ IDEA, Eclipse, VS Code, NetBeans)
+.idea/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+.vscode/
+nbproject/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
