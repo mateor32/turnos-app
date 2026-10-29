@@ -821,6 +821,29 @@ a {
   font-size: 0.68rem;
 }
 
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+
+.admin-current-card,
+.admin-queue-card {
+  padding: 1.6rem 1.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-current-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
