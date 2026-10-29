@@ -4,7 +4,6 @@ import com.turnos.qa.pages.AsesorPage;
 import com.turnos.qa.pages.ClientePage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,10 +16,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,15 +28,27 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Suite de Pruebas E2E basada en el Caso:
- * - Caminos Felices (Casos Exitosos): Flujo normal de pedir turno, atender en orden y ver métricas.
- * - Caminos Tristes (Casos de Bloqueo / Validación): Fila vacía, números duplicados y no saltarse el orden.
+ * Suite de Pruebas End-to-End (E2E) en Google Chrome con Selenium WebDriver 4 y JUnit 5.
+ *
+ * <p>Valida sobre el Frontend Angular (http://localhost:4200) y el Backend Spring Boot
+ * (http://localhost:8080) el cumplimiento estricto de la regla de negocio del caso:</p>
+ * <blockquote>
+ * "Los turnos se atienden en orden de llegada, los números no se repiten y no se puede
+ * llamar al siguiente si la fila está vacía."
+ * </blockquote>
+ *
+ * <p>Cada acción y vista clave permanece en pantalla como mínimo 3 segundos (3000 ms)
+ * para permitir observar con claridad la ejecución automatizada en el navegador.</p>
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Pruebas E2E - Fila Virtual de Turnos (Caminos Felices y Caminos Tristes)")
+@DisplayName("Pruebas E2E Frontend - Fila Virtual de Turnos (Caminos Felices y Caminos Tristes)")
 public class FilaVirtualTurnosE2ETest {
 
+    /** Tiempo mínimo de visualización en pantalla por paso (3 segundos = 3000 ms). */
+    private static final long MINIMO_PAUSA_VISUAL_MS = 3000L;
+
     private static final String BASE_URL = resolveBaseUrl();
+    private static final long PAUSA_VISUAL_MS = resolvePausaVisualMs();
     private static final Set<Integer> TURNOS_USADOS = new HashSet<>(List.of(1, 2, 3, 4, 5));
 
     private WebDriver driver;
@@ -53,28 +60,20 @@ public class FilaVirtualTurnosE2ETest {
         return (prop == null || prop.isBlank()) ? "http://localhost:4200" : prop.trim();
     }
 
-    private static boolean isFrontendActivo() {
-        try {
-            HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(2))
-                    .build();
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL))
-                    .GET()
-                    .build();
-            HttpResponse<Void> res = client.send(req, HttpResponse.BodyHandlers.discarding());
-            return res.statusCode() > 0;
-        } catch (Exception e) {
-            return false;
+    private static long resolvePausaVisualMs() {
+        String prop = System.getProperty("pausa.ms");
+        if (prop != null && !prop.isBlank()) {
+            try {
+                return Math.max(MINIMO_PAUSA_VISUAL_MS, Long.parseLong(prop.trim()));
+            } catch (NumberFormatException ignored) {
+                // Usa el mínimo de 3 segundos si el valor no es numérico
+            }
         }
+        return MINIMO_PAUSA_VISUAL_MS;
     }
 
     @BeforeAll
     static void configurarDriver() {
-        Assumptions.assumeTrue(
-                isFrontendActivo(),
-                "El Frontend no está encendido en " + BASE_URL + ". Se omiten las pruebas E2E de Chrome (enciende el frontend en el puerto 4200 para ejecutarlas)."
-        );
         WebDriverManager.chromedriver().setup();
     }
 
@@ -88,15 +87,20 @@ public class FilaVirtualTurnosE2ETest {
         }
 
         driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
-        clientePage = new ClientePage(driver, wait, BASE_URL);
-        asesorPage = new AsesorPage(driver, wait, BASE_URL);
+        clientePage = new ClientePage(driver, wait, BASE_URL, PAUSA_VISUAL_MS);
+        asesorPage = new AsesorPage(driver, wait, BASE_URL, PAUSA_VISUAL_MS);
     }
 
     @AfterEach
     void tearDown() {
         if (driver != null) {
+            try {
+                Thread.sleep(PAUSA_VISUAL_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             driver.quit();
         }
     }
@@ -111,7 +115,7 @@ public class FilaVirtualTurnosE2ETest {
     void test01_verificarAtencionEstrictoOrdenLlegadaFIFO() {
         asesorPage.navegar();
 
-        // Si la fila quedó vacía por pruebas previas, generamos 3 turnos desde la vista cliente
+        // Si la fila quedó vacía por pruebas previas del backend, generamos 3 turnos desde la vista cliente
         if (asesorPage.obtenerTurnosEnEspera() < 3) {
             clientePage.navegar();
             for (int i = 0; i < 3; i++) {
@@ -214,6 +218,8 @@ public class FilaVirtualTurnosE2ETest {
         assertNotEquals(turnoPrimero, turnoSegundo, "Dos solicitudes distintas no pueden recibir el mismo número de turno");
         assertFalse(TURNOS_USADOS.contains(turnoPrimero), "El primer turno no debe repetir un número histórico");
         assertFalse(TURNOS_USADOS.contains(turnoSegundo), "El segundo turno no debe repetir un número histórico");
+        TURNOS_USADOS.add(turnoPrimero);
+        TURNOS_USADOS.add(turnoSegundo);
 
         // Validar en el asesor que no se salte el orden (no debe llamar al segundo antes que al primero)
         asesorPage.navegar();

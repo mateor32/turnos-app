@@ -14,8 +14,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <selenium.version>4.25.0</selenium.version>
         <junit.jupiter.version>5.11.2</junit.jupiter.version>
         <webdrivermanager.version>5.9.2</webdrivermanager.version>
@@ -23,6 +22,7 @@
         <base.url>http://localhost:4200</base.url>
         <api.url>http://localhost:8080/api/turnos</api.url>
         <headless>false</headless>
+        <pausa.ms>3000</pausa.ms>
     </properties>
 
     <dependencies>
@@ -64,6 +64,8 @@
                         <base.url>${base.url}</base.url>
                         <!-- Modo headless para CI/CD (por defecto false) -->
                         <headless>${headless}</headless>
+                        <!-- Tiempo mínimo en pantalla por paso en Chrome (por defecto 3000 ms = 3s) -->
+                        <pausa.ms>${pausa.ms}</pausa.ms>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

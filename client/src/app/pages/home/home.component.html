@@ -1,0 +1,127 @@
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="TurnoFácil, inicio">
+      <span class="brand-mark">T</span>
+      <span>Turno<span class="brand-accent">Fácil</span></span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Abrir menú"
+      [attr.aria-expanded]="menuOpen()"
+      (click)="menuOpen.set(!menuOpen())"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="main-nav" [class.is-open]="menuOpen()">
+      <a class="active" href="#inicio" (click)="menuOpen.set(false)">Inicio</a>
+      <a href="#servicios" (click)="menuOpen.set(false)">Servicios</a>
+      <a href="#como-funciona" (click)="menuOpen.set(false)">Consultar turno</a>
+      <a href="#sucursales" (click)="menuOpen.set(false)">Sucursales</a>
+      <a href="#contacto" (click)="menuOpen.set(false)">Contacto</a>
+    </nav>
+
+    <div class="header-actions">
+      <a class="button button-primary button-small" routerLink="/clientes">Solicitar un turno</a>
+      <a class="profile-button" routerLink="/clientes" aria-label="Ingresar a mi cuenta">◉</a>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <section class="hero-section">
+      <div class="eyebrow"><span class="eyebrow-dot"></span> Fila virtual inteligente</div>
+      <p class="platform-line"><strong>Turno<span class="brand-accent">Fácil</span></strong> <span>Plataforma de autoservicio</span></p>
+      <h1>Bienvenido a <span>TurnoFácil</span></h1>
+      <p class="hero-copy">Gestiona tu turno sin hacer filas. Atención ágil, transparente y en tiempo real.</p>
+
+      <div class="trust-strip" aria-label="Beneficios de TurnoFácil">
+        <span><b aria-hidden="true">✓</b> Sin descargas</span>
+        <span><b aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></b> Notificaciones en vivo</span>
+        <span><b aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 9h8M8 13h5"/></svg></b> Sincronización en sala</span>
+      </div>
+    </section>
+
+    <section class="access-grid" id="servicios" aria-label="Accesos principales">
+      <article class="access-card">
+        <div class="card-top-line"></div>
+        <div class="card-heading">
+          <div class="card-icon user-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5.5 19c.6-3 2.8-4.5 6.5-4.5s5.9 1.5 6.5 4.5"/></svg></div>
+          <span class="card-tag">Acceso clientes</span>
+        </div>
+        <p class="card-kicker">Portal de usuario</p>
+        <h2>Soy cliente</h2>
+        <p class="card-description">Solicita un turno y consulta el estado de la fila en tiempo real desde tu celular o navegador.</p>
+        <div class="status-row">
+          <div class="status-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5z"/><path d="M8 9h8M8 13h5"/></svg></div>
+          <div><strong>Ticket digital instantáneo</strong><small>Sin papeles, seguimiento en vivo</small></div>
+          <span class="status-badge success">Activo</span>
+        </div>
+        <div class="feature-row">
+          <span>Alerta por SMS o web</span>
+          <span>Indicación de ventanilla</span>
+        </div>
+        <a class="button button-primary card-button" routerLink="/clientes">Ingresar como cliente <span>→</span></a>
+      </article>
+
+      <article class="access-card">
+        <div class="card-top-line"></div>
+        <div class="card-heading">
+          <div class="card-icon advisor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5.5 19c.6-3 2.8-4.5 6.5-4.5s5.9 1.5 6.5 4.5"/></svg></div>
+          <span class="card-tag">Acceso asesores</span>
+        </div>
+        <p class="card-kicker">Consola operativa</p>
+        <h2>Soy asesor</h2>
+        <p class="card-description">Gestiona la fila, visualiza los usuarios en espera y llama al siguiente turno con un solo clic.</p>
+        <div class="status-row">
+          <div class="status-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></div>
+          <div><strong>Módulo de despacho rápido</strong><small>Llamado por voz, pantalla y audio</small></div>
+          <span class="status-badge operator">Operador</span>
+        </div>
+        <div class="feature-row">
+          <span>Llamador automatizado</span>
+          <span>Telemetría de atención</span>
+        </div>
+        <a class="button button-primary card-button" routerLink="/administradores">Ingresar al panel asesor <span aria-hidden="true">→</span></a>
+      </article>
+    </section>
+
+    <section class="metrics-section" id="como-funciona" aria-label="Indicadores del servicio">
+      <div class="metric">
+        <span class="metric-icon mint"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></span>
+        <span><strong>~4 min</strong><small>Espera promedio del sistema</small></span>
+        <em>Óptimo</em>
+      </div>
+      <div class="metric">
+        <span class="metric-icon lilac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5m0 0L8 9m4-4 4 4M6 20h12"/></svg></span>
+        <span><strong>12 módulos</strong><small>Atención directa en ventanilla</small></span>
+        <em>En línea</em>
+      </div>
+      <div class="metric">
+        <span class="metric-icon lavender"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+        <span><strong>98.4%</strong><small>Puntualidad en llamados de hoy</small></span>
+        <em>Satisfacción</em>
+      </div>
+    </section>
+
+    <div class="service-note" id="sucursales">
+      <span><b>●</b> Servicios operativos sin retraso</span>
+      <span>▧ &nbsp; Protocolo seguro TLS 1.3</span>
+      <span>Soporte presencial en módulo central</span>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="contacto">
+    <a class="brand footer-brand" routerLink="/">
+      <span class="brand-mark">T</span>
+      <span>Turno<span class="brand-accent">Fácil</span></span>
+    </a>
+    <span class="copyright">© 2025 TurnoFácil Platform. Todos los derechos reservados.</span>
+    <nav aria-label="Enlaces legales">
+      <a href="#contacto">Términos y condiciones</a>
+      <a href="#contacto">Privacidad</a>
+      <a href="#contacto">Soporte</a>
+    </nav>
+  </footer>
+</div>

@@ -1,76 +1,113 @@
-# Pruebas Automatizadas - Fila Virtual de Turnos
+# Documentación de Pruebas Automatizadas (QA) — TurnoFácil
 
-Este directorio contiene las pruebas automatizadas con **JUnit 5** basadas directamente en los requerimientos del caso, dividiendo los escenarios en **Caminos Felices (Casos Exitosos)** y **Caminos Tristes (Casos Fallidos / Bloqueos)**:
-
-1. **[`BackendTurnosApiTest.java`](src/test/java/com/turnos/qa/tests/BackendTurnosApiTest.java)**: Pruebas directas sobre los endpoints del **Backend** (`http://localhost:8080/api/turnos`). **Se pueden ejecutar desde ya sin necesidad de tener el Frontend listo.**
-2. **[`FilaVirtualTurnosE2ETest.java`](src/test/java/com/turnos/qa/tests/FilaVirtualTurnosE2ETest.java)**: Pruebas End-to-End en Google Chrome con **Selenium WebDriver 4** para validar el **Frontend** (`http://localhost:4200`) cuando esté listo.
+Este directorio contiene la suite completa de **10 pruebas automatizadas** con **JUnit 5** y **Selenium WebDriver 4** (5 pruebas de API sobre el Backend y 5 pruebas End-to-End en Google Chrome sobre el Frontend), estructuradas bajo el patrón **Page Object Model (POM)** y divididas en **Caminos Felices (Happy Paths)** y **Caminos Tristes (Unhappy Paths / Reglas de Bloqueo)**.
 
 ---
 
-## 1. ¿En qué se basan las pruebas? (El Caso)
+## 1. Objetivo y Regla de Negocio Validada
 
-- **FRONT (`http://localhost:4200`)**: Una vista para pedir turno (`/cliente`) y otra para que el asesor llame al siguiente (`/asesor`), con los turnos en espera y la espera promedio.
-- **BACK (`http://localhost:8080/api/turnos`)**: Un servicio que asigna los turnos, lleva el orden de la fila y calcula la espera promedio.
-- **DATOS**: Los turnos de la mañana cargados en la base de datos (cerrando en el turno 10, con los turnos **6, 7, 8, 9 y 10** pendientes en orden de llegada).
-- **PRUEBAS**: Pruebas que demuestren que el orden se respeta en todos los casos.
-- **REGLA DEL CASO**:
+Todas las pruebas están diseñadas para demostrar el cumplimiento estricto de los requerimientos del caso:
+
+- **FRONT (`http://localhost:4200`)**: Una vista para pedir turno (`/clientes` → `/clientes/turno`) y otra para que el asesor llame al siguiente (`/administradores/panel` o `/asesor`), mostrando los turnos en espera y el tiempo de espera promedio.
+- **BACK (`http://localhost:8080/api/turnos`)**: Servicio REST que asigna los turnos secuencialmente, administra el orden de la fila y calcula la espera promedio.
+- **DATOS**: Los turnos de la mañana cargados en la base de datos (1 al 5 atendidos y 6, 7, 8, 9 y 10 pendientes en orden de llegada).
+- **REGLA DE ORO DEL CASO**:
   > *"Los turnos se atienden en orden de llegada, los números no se repiten y no se puede llamar al siguiente si la fila está vacía."*
 
 ---
 
-## 2. Pruebas del Backend sin Frontend ([`BackendTurnosApiTest.java`](src/test/java/com/turnos/qa/tests/BackendTurnosApiTest.java))
+## 2. Arquitectura del Proyecto de Pruebas (`pruebas/`)
 
-Permiten validar que el backend cumpla todas las reglas del caso consumiendo directamente `http://localhost:8080/api/turnos`:
+```text
+pruebas/
+├─ pom.xml                                        # Configuración Maven (Selenium 4.25, JUnit 5.11, WebDriverManager)
+├─ README.md                                      # Documentación detallada de la suite de pruebas
+└─ src/test/java/com/turnos/qa/
+   ├─ pages/
+   │  ├─ AsesorPage.java                          # Page Object del Panel del Asesor (/administradores/panel)
+   │  └─ ClientePage.java                         # Page Object del Portal del Cliente (/clientes -> /clientes/turno)
+   └─ tests/
+      ├─ BackendTurnosApiTest.java                # 5 pruebas directas sobre los endpoints REST del Backend
+      └─ FilaVirtualTurnosE2ETest.java            # 5 pruebas E2E en Google Chrome sobre el Frontend Angular
+```
 
-### Caminos Felices (Casos Exitosos)
-1. **`test01_atencionEnOrdenDeLlegadaFIFO()`**: Llama a `GET /siguiente` y `PUT /{id}/atender` comprobando que los turnos pendientes se entregan y atienden en su estricto orden de llegada.
-2. **`test02_crearTurno_asignaNumeroConsecutivo_yAumentaFila()`**: Llama a `POST /api/turnos` (`201 Created`), verifica que nazca en estado `pendiente` y que `GET /pendientes/count` aumente en `+1`.
-3. **`test03_verificarMetricasBackend()`**: Comprueba que `GET /pendientes/count` y `GET /espera-promedio` respondan `200 OK` con valores numéricos válidos (`>= 0`).
-
-### Caminos Tristes (Casos Fallidos / de Bloqueo)
-4. **`test04_bloqueoCuandoFilaEstaVacia_yTurnoNoPendiente()`**:
-   - Vacía los turnos pendientes hasta llegar a `0`.
-   - Comprueba que `GET /api/turnos/siguiente` bloquee la llamada devolviendo **`404 Not Found`**.
-   - Comprueba que intentar volver a atender un turno ya atendido o un ID inexistente (`PUT /{id}/atender`) falle con **`400 Bad Request`**.
-5. **`test05_noRepetirNumeros_niSaltarseElOrden()`**:
-   - Crea dos turnos seguidos con `POST /api/turnos`, verifica que sus números sean distintos y consecutivos, y comprueba con `GET /siguiente` que el backend **nunca se salte la fila** llamando al más reciente antes que al primero.
-
----
-
-## 3. Pruebas E2E con Frontend ([`FilaVirtualTurnosE2ETest.java`](src/test/java/com/turnos/qa/tests/FilaVirtualTurnosE2ETest.java))
-
-Cuando el frontend en Angular esté listo en `http://localhost:4200`, validan en Google Chrome los mismos **Caminos Felices** (`test01` a `test03`) y **Caminos Tristes** (`test04` y `test05`) usando los siguientes `id` HTML:
-
-### Vista Cliente (`/cliente`)
-- `id="btn-pedir-turno"`: Botón para pedir un turno.
-- `id="ticket-numero-asignado"`: Número de turno generado.
-
-### Vista Asesor (`/asesor`)
-- `id="btn-llamar-siguiente"`: Botón para llamar al siguiente turno.
-- `id="turno-actual-llamado"`: Número del turno llamado en pantalla.
-- `id="contador-turnos-espera"`: Cantidad de turnos pendientes en la fila.
-- `id="tiempo-espera-promedio"`: Tiempo de espera promedio.
-- `id="alerta-fila-vacia"`: Alerta mostrada si se intenta llamar cuando la fila está vacía.
+### Tiempo de visualización en pantalla (Mínimo 3 segundos)
+Para que cualquier evaluador o desarrollador pueda observar en tiempo real cada acción del navegador durante la ejecución de `FilaVirtualTurnosE2ETest`, cada paso visual (carga del panel, asignación de ticket en pantalla, llamado de turno y cierre de prueba) permanece visible en pantalla **como mínimo 3 segundos (`3000 ms`)**, configurado en la propiedad `<pausa.ms>3000</pausa.ms>` del [`pom.xml`](pom.xml).
 
 ---
 
-## 4. Cómo ejecutar las pruebas
+## 3. Matriz Resumen de las 10 Pruebas Automatizadas
 
-### Opción A: Probar SOLO el Backend ahora mismo (sin Frontend)
-1. Enciende el backend en una terminal:
+| # | Suite | Método de Prueba | Tipo | Escenario / Qué valida | Resultado Esperado |
+|---|---|---|---|---|---|
+| **1** | Backend API | `test01_atencionEnOrdenDeLlegadaFIFO` | Camino Feliz | Consulta los turnos pendientes y los llama/atiende uno por uno (`GET /siguiente` + `PUT /{id}/atender`). | Se entregan y atienden en estricto orden de llegada (FIFO). |
+| **2** | Backend API | `test02_crearTurno_asignaNumeroConsecutivo_yAumentaFila` | Camino Feliz | Solicita un nuevo turno con `POST /api/turnos`. | Responde `201 Created`, estado `pendiente` y el contador `/pendientes/count` sube en `+1`. |
+| **3** | Backend API | `test03_verificarMetricasBackend` | Camino Feliz | Consulta `GET /pendientes/count` y `GET /espera-promedio`. | Ambos responden `200 OK` con valores numéricos válidos (`>= 0`). |
+| **4** | Backend API | `test04_bloqueoCuandoFilaEstaVacia_yTurnoNoPendiente` | Camino Triste | Vacía la fila e intenta llamar al siguiente (`GET /siguiente`), re-atender un turno ya atendido o un ID inexistente. | `404 Not Found` cuando la fila está vacía y `400 Bad Request` al intentar atender un turno no pendiente o inexistente. |
+| **5** | Backend API | `test05_noRepetirNumeros_niSaltarseElOrden` | Camino Triste | Crea dos turnos consecutivos y consulta cuál es el próximo en ser llamado (`GET /siguiente`). | Números distintos/consecutivos (`n` y `n+1`), y el sistema llama primero al que llegó antes sin saltarse la fila. |
+| **6** | Frontend E2E | `test01_verificarAtencionEstrictoOrdenLlegadaFIFO` | Camino Feliz | Abre Chrome en el panel del asesor y llama uno por uno a los turnos en espera. | Los códigos llamados en pantalla (`#turno-actual-llamado`) siguen un orden estrictamente creciente (FIFO). |
+| **7** | Frontend E2E | `test02_clientePideTurno_noSeRepiteNumero_ySeEncola` | Camino Feliz | Un cliente entra a `/clientes`, solicita turno y luego se revisa el panel del asesor. | Se asigna un código único (`>= 11`, ej. `A-011`) sin repetir y el contador de espera del asesor aumenta en `+1`. |
+| **8** | Frontend E2E | `test03_verificarMetricasAsesor` | Camino Feliz | Abre el panel del asesor y lee los indicadores de fila en espera y espera promedio. | Se visualizan valores numéricos válidos (`>= 0`) en `#contador-turnos-espera` y `#tiempo-espera-promedio`. |
+| **9** | Frontend E2E | `test04_bloqueoLlamarSiguiente_cuandoFilaEstaVacia` | Camino Triste | El asesor atiende todos los turnos hasta dejar la fila en `0`. | Con `0` en espera, el botón `#btn-llamar-siguiente` queda deshabilitado (`disabled`) y se muestra la alerta `#alerta-fila-vacia`. |
+| **10** | Frontend E2E | `test05_noPermitirNumerosRepetidosNiSaltarseElOrden` | Camino Triste | Dos clientes piden turno de forma consecutiva en el navegador y el asesor llama al siguiente. | Los tickets asignados no se repiten y el asesor atiende primero al primer cliente sin saltarse el orden. |
+
+---
+
+## 4. Contrato de Selectores HTML (Frontend ↔ Selenium)
+
+Los Page Objects [`ClientePage.java`](src/test/java/com/turnos/qa/pages/ClientePage.java) y [`AsesorPage.java`](src/test/java/com/turnos/qa/pages/AsesorPage.java) interactúan con los siguientes `id` en los componentes de Angular (`client/`):
+
+### Vista Cliente (`/clientes` → `/clientes/turno`, alias `/cliente`)
+- `id="btn-pedir-turno"`: Botón **"Solicitar turno"** en [`access.component.html`](../client/src/app/pages/access/access.component.html).
+- `id="ticket-numero-asignado"`: Código del turno asignado en pantalla (ej. `A-011`) en [`client.component.html`](../client/src/app/pages/client/client.component.html).
+
+### Vista Asesor (`/administradores/panel`, alias `/asesor`)
+Definidos en [`admin-dashboard.component.html`](../client/src/app/pages/admin-dashboard/admin-dashboard.component.html):
+- `id="contador-turnos-espera"`: Indicador numérico de personas en espera.
+- `id="tiempo-espera-promedio"`: Indicador del tiempo promedio de espera en minutos.
+- `id="turno-actual-llamado"`: Código del turno actualmente en atención (ej. `A-006`).
+- `id="btn-llamar-siguiente"`: Botón principal **"Llamar siguiente turno"** (se deshabilita automáticamente cuando `waitingCount() === 0`).
+- `id="alerta-fila-vacia"`: Mensaje de bloqueo **"No hay turnos pendientes en este momento."** cuando la fila queda vacía.
+
+---
+
+## 5. Guía de Ejecución
+
+### Requisitos previos
+1. **Backend encendido** en `http://localhost:8080`:
    ```bash
    cd backend
    mvn spring-boot:run
    ```
-2. En otra terminal, ejecuta únicamente las pruebas del backend:
+2. **Frontend encendido** en `http://localhost:4200`:
    ```bash
-   cd pruebas
-   mvn test -Dtest=BackendTurnosApiTest
+   cd client
+   npm install
+   npm start
    ```
 
-### Opción B: Probar el Frontend + Backend en Google Chrome (E2E)
-Cuando el frontend esté corriendo en `http://localhost:4200` y el backend en `http://localhost:8080`:
+### Comandos para correr las pruebas
+
+#### Ejecutar las 10 pruebas completas (Backend API + Frontend E2E en Chrome)
+```bash
+cd pruebas
+mvn test
+```
+
+#### Ejecutar únicamente las 5 pruebas de API del Backend
+```bash
+cd pruebas
+mvn test -Dtest=BackendTurnosApiTest
+```
+
+#### Ejecutar únicamente las 5 pruebas E2E del Frontend en Google Chrome
 ```bash
 cd pruebas
 mvn test -Dtest=FilaVirtualTurnosE2ETest
+```
+
+#### Personalizar el tiempo de visualización en pantalla (opcional)
+Por defecto cada paso se muestra durante **mínimo 3 segundos (`3000 ms`)**. Si deseas aumentar el tiempo en pantalla (por ejemplo a 5 segundos por paso):
+```bash
+mvn test -Dtest=FilaVirtualTurnosE2ETest -Dpausa.ms=5000
 ```

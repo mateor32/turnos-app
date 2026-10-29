@@ -1,0 +1,23 @@
+<main class="access-page">
+  <a class="brand access-brand" routerLink="/">
+    <span class="brand-mark">T</span>
+    <span>Turno<span class="brand-accent">Fácil</span></span>
+  </a>
+  <section class="access-panel">
+    <div class="card-icon" [class.advisor-icon]="isAdmin" [class.user-icon]="!isAdmin">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5.5 19c.6-3 2.8-4.5 6.5-4.5s5.9 1.5 6.5 4.5"/></svg>
+    </div>
+    <p class="card-kicker">{{ isAdmin ? 'Consola operativa' : 'Portal de usuario' }}</p>
+    <h1>{{ isAdmin ? 'Panel asesor' : 'Solicita tu turno' }}</h1>
+    <p>{{ isAdmin ? 'Ingresa para gestionar la fila y llamar al siguiente usuario.' : 'Ingresa tus datos para obtener un ticket digital y seguir tu turno.' }}</p>
+    <a
+      [attr.id]="isAdmin ? 'btn-ingresar-panel' : 'btn-pedir-turno'"
+      class="button button-primary"
+      [routerLink]="isAdmin ? '/administradores/panel' : '/clientes/turno'"
+      (click)="handleActionClick()"
+    >
+      {{ isAdmin ? 'Ingresar al panel' : 'Solicitar turno' }} <span aria-hidden="true">→</span>
+    </a>
+    <a class="back-link" routerLink="/">← Volver al inicio</a>
+  </section>
+</main>

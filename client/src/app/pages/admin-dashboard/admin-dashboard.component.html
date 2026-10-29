@@ -1,0 +1,167 @@
+<div class="admin-shell">
+  <header class="admin-header">
+    <a class="brand" routerLink="/" aria-label="TurnoFácil, inicio">
+      <span class="brand-mark">T</span>
+      <span>Turno<span class="brand-accent">Fácil</span></span>
+    </a>
+    <div class="admin-header-meta">
+      <span class="admin-chip">Sede Central · Bogotá</span>
+      <span class="admin-chip">Módulo 04 · Ventanilla 1</span>
+    </div>
+    <a class="back-link admin-back-link" routerLink="/">← Volver al inicio</a>
+  </header>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <h1>Panel del asesor</h1>
+      <p class="admin-subtitle">Gestiona la fila de atención y llama al siguiente turno disponible.</p>
+    </div>
+
+    @if (loading()) {
+      <section class="admin-state" aria-live="polite">
+        <span class="state-spinner" aria-hidden="true"></span>
+        <div><strong>Cargando la fila</strong><p>Estamos sincronizando los turnos disponibles.</p></div>
+      </section>
+    } @else if (error()) {
+      <section class="admin-state admin-state-error" aria-live="assertive">
+        <span class="state-icon" aria-hidden="true">!</span>
+        <div><strong>No pudimos cargar el panel</strong><p>{{ error() }}</p></div>
+        <button class="button admin-secondary-button" type="button" (click)="loadDashboard()">Intentar de nuevo</button>
+      </section>
+    } @else {
+    <section class="admin-metrics" aria-label="Indicadores de la fila">
+      <div class="admin-metric-card">
+        <span class="card-kicker">Personas en espera</span>
+        <strong id="contador-turnos-espera" class="admin-metric-value">{{ waitingCount() }}</strong>
+        <span class="admin-metric-label">personas en la fila</span>
+      </div>
+      <div class="admin-metric-card">
+        <span class="card-kicker">Tiempo promedio de espera</span>
+        <strong id="tiempo-espera-promedio" class="admin-metric-value accent">{{ averageWaitMinutes() }} min</strong>
+        <span class="admin-metric-label">calculado sobre los turnos atendidos hoy</span>
+      </div>
+      <div class="admin-metric-card">
+        <span class="card-kicker">Turnos atendidos hoy</span>
+        <strong class="admin-metric-value">{{ servedToday() }}</strong>
+        <span class="admin-metric-label">desde el inicio de la jornada</span>
+      </div>
+    </section>
+
+    <section class="admin-grid">
+      <article class="admin-current-card">
+        <div class="card-top-line"></div>
+        <div class="admin-current-head">
+          <span class="card-kicker">Turno actual</span>
+          @if (currentTicket()) {
+            <span class="status-badge success">En atención</span>
+          } @else {
+            <span class="status-badge operator">Esperando llamado</span>
+          }
+        </div>
+
+        @if (currentTicket(); as ticket) {
+          <div class="admin-ticket-display" [class.is-recalling]="isRecalling()">
+            <span id="turno-actual-llamado" class="admin-ticket-code">A-{{ ticket.numero.toString().padStart(3, '0') }}</span>
+            <span class="admin-ticket-timer">
+              Tiempo transcurrido: <strong>{{ elapsedLabel() }}</strong>
+            </span>
+          </div>
+          <div class="admin-ticket-meta">
+            <div>
+              <span class="card-kicker">Cliente / Titular</span>
+              <strong>Cliente sin identificar</strong>
+            </div>
+            <div>
+              <span class="card-kicker">Trámite solicitado</span>
+              <strong>Atención comercial</strong>
+            </div>
+          </div>
+        } @else {
+          <div class="admin-empty-ticket">
+            <p>No hay un turno en atención. Llama al siguiente turno disponible para comenzar.</p>
+          </div>
+        }
+
+        <div class="admin-actions">
+          <button
+            id="btn-llamar-siguiente"
+            class="button button-primary admin-call-button"
+            type="button"
+            [disabled]="waitingCount() === 0"
+            (click)="callNext()"
+          >
+            Llamar siguiente turno <span>→</span>
+          </button>
+          <div class="admin-actions-row">
+            <button
+              class="button admin-secondary-button"
+              type="button"
+              [disabled]="!currentTicket()"
+              (click)="recall()"
+            >
+              Re-llamar
+            </button>
+            <button
+              class="button admin-secondary-button"
+              type="button"
+              [disabled]="!currentTicket()"
+              (click)="completeAttention()"
+            >
+              Completar atención
+            </button>
+          </div>
+        </div>
+
+        @if (waitingCount() === 0) {
+          <p id="alerta-fila-vacia" class="admin-notice">No hay turnos pendientes en este momento.</p>
+        }
+      </article>
+
+      <article class="admin-queue-card">
+        <div class="card-top-line"></div>
+        <div class="admin-queue-head">
+          <div>
+            <span class="card-kicker">Próximos turnos</span>
+            <h2>Fila de espera</h2>
+          </div>
+          <span class="status-badge operator">{{ waitingCount() }} en fila</span>
+        </div>
+
+        @if (sortedQueue().length) {
+          <table class="admin-queue-table">
+            <thead>
+              <tr>
+                <th>Turno</th>
+                <th>Prioridad</th>
+                <th>Posición</th>
+                <th>Espera estimada</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ticket of sortedQueue(); track ticket.id; let i = $index) {
+                <tr>
+                  <td>
+                    <div class="admin-queue-ticket">
+                      <span class="admin-queue-code">A-{{ ticket.numero.toString().padStart(3, '0') }}</span>
+                      <span class="admin-queue-service">Atención comercial</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge operator">Estándar</span>
+                  </td>
+                  <td>{{ i + 1 }}</td>
+                  <td>~{{ estimatedWait(i) }} min</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="admin-empty-queue">
+            <p>No hay turnos pendientes en la fila.</p>
+          </div>
+        }
+      </article>
+    </section>
+    }
+  </main>
+</div>

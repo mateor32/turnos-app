@@ -1,0 +1,96 @@
+:host { display: block; }
+.turn-page { min-height: 100dvh; background: var(--surface); color: var(--ink); }
+.turn-header { display: flex; align-items: center; min-height: 82px; padding: 1rem max(1.5rem, calc((100% - 1120px) / 2)); border-bottom: 1px solid var(--line); background: rgb(255 255 255 / .9); }
+.turn-brand { display: flex; align-items: center; gap: .55rem; }
+.turn-logo { display: grid; width: 2.05rem; height: 2.05rem; place-items: center; border-radius: .55rem; color: #fff; background: var(--primary); font-weight: 800; }
+.turn-brand strong { display: block; color: #242025; font-size: 1.05rem; letter-spacing: -.04em; }
+.turn-brand strong span { color: var(--primary); }
+.turn-brand small { display: block; margin-top: .08rem; color: #736b7a; font-size: .75rem; letter-spacing: .12em; }
+.demo-badge { margin-left: .7rem; padding: .3rem .72rem; border-radius: 999px; color: #372567; background: #e8e1ff; font-size: .75rem; font-weight: 800; }
+.account-button { display: grid; width: 3rem; height: 3rem; place-items: center; margin-left: auto; border: 0; border-radius: 50%; color: #fff; background: var(--primary); cursor: pointer; }
+.account-button svg { width: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.turn-content { width: min(100% - 2rem, 720px); margin: 0 auto; padding: 1.5rem 0 6rem; }
+.turn-tabs { display: grid; grid-template-columns: 1fr 1.35fr; gap: .2rem; padding: .3rem; border-radius: 2rem; background: #e9e6e9; box-shadow: 0 3px 8px rgb(56 39 61 / .08); }
+.turn-tab { display: flex; align-items: center; justify-content: center; gap: .65rem; min-height: 3rem; border-radius: 2rem; font-size: .95rem; font-weight: 800; }
+.turn-tab svg, .ticket-heading svg, .queue-position svg, .progress-title svg { width: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.turn-tab.muted { color: #433c48; }
+.turn-tab.active { color: #5d0bd0; background: #fff; box-shadow: 0 2px 6px rgb(47 29 54 / .15); }
+.ticket-card, .progress-card, .movement-card { margin-top: 1.4rem; overflow: hidden; border-radius: 1rem; border: 1px solid var(--line); background: var(--surface-card); box-shadow: var(--shadow-card); }
+.ticket-heading { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.35rem; background: var(--surface-soft); }
+.ticket-heading > div { display: flex; align-items: center; gap: .75rem; color: #5d0bd0; }
+.ticket-heading strong { color: #433c4a; font-size: .92rem; line-height: 1.2; letter-spacing: .04em; }
+.ticket-heading svg { width: 1.65rem; }
+.waiting-badge { display: inline-flex; align-items: center; gap: .5rem; padding: .65rem 1rem; border-radius: 2rem; color: #062f24; background: #5af0b5; font-weight: 800; }
+.waiting-badge i { width: .65rem; height: .65rem; border-radius: 50%; background: #087a51; }
+.ticket-main { padding: 1.4rem 1rem 2rem; text-align: center; border-bottom: 1px solid var(--line); }
+.ticket-main p { margin: 0 0 .45rem; font-size: 1rem; }
+.ticket-code { display: block; color: #5d0bd0; font-size: clamp(3.2rem, 13vw, 4.8rem); line-height: 1.1; letter-spacing: .03em; }
+.queue-position { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: .55rem .95rem; border-radius: 2rem; color: #35285e; background: #e6deff; font-size: .95rem; font-weight: 700; }
+.ticket-details { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1.4rem; }
+.ticket-details > div { display: flex; align-items: center; gap: .9rem; padding: 1rem; border-radius: .75rem; background: #f5f1f5; }
+.detail-icon { display: grid; width: 3rem; height: 3rem; flex: 0 0 3rem; place-items: center; border-radius: 50%; color: #362080; background: #e9ddff; }
+.detail-icon svg { width: 1.75rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.detail-icon.screen-icon { color: #5146aa; background: #d3ccff; }
+.ticket-details span:not(.detail-icon) { display: flex; flex-direction: column; gap: .25rem; font-size: .9rem; }
+.ticket-details strong { color: #17131b; font-size: 1.55rem; }
+.progress-card { padding: 1.3rem 1.35rem 1.2rem; box-shadow: 0 2px 5px rgb(69 45 76 / .05); }
+.progress-title { display: flex; justify-content: space-between; gap: 1rem; font-size: 1rem; }
+.progress-title span { display: flex; align-items: center; gap: .5rem; }
+.progress-title span, .progress-title strong { color: #5d0bd0; }
+.progress-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem; margin: 1.1rem 0 .7rem; }
+.progress-bars i { height: .85rem; border-radius: 1rem; background: #5d0bd0; }
+.progress-bars i:nth-child(3) { background: #e5d7ff; }
+.progress-bars i:nth-child(4) { background: #e7e3e7; }
+.progress-labels { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; font-size: .75rem; font-weight: 700; }
+.progress-labels strong { text-align: right; color: #5d0bd0; }
+.progress-labels span:nth-child(2) { text-align: center; }
+.notice-card { display: flex; gap: 1rem; margin-top: 1.5rem; padding: 1.35rem; border: 1px solid #dfd1f6; border-radius: 1rem; color: #2e2440; background: #f3eaff; }
+.notice-icon, .movement-icon { display: grid; width: 3rem; height: 3rem; flex: 0 0 3rem; place-items: center; border-radius: 50%; color: #fff; background: #5d0bd0; }
+.notice-icon svg, .movement-icon svg { width: 1.7rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.notice-card strong, .movement-card strong { display: block; font-size: 1.15rem; line-height: 1.45; }
+.notice-card p, .movement-card p { margin: .35rem 0 0; color: #5c5365; font-size: 1rem; line-height: 1.65; }
+.movement-card { display: flex; gap: 1rem; padding: 1.35rem; box-shadow: none; }
+.movement-icon { color: #177457; background: #c9f5e5; }
+.turn-actions { display: grid; grid-template-columns: 1fr .45fr; gap: 1rem; margin-top: 1.4rem; }
+.refresh-button, .cancel-button { display: flex; align-items: center; justify-content: center; min-height: 3.5rem; border: 1px solid var(--line); border-radius: .75rem; background: var(--surface-card); cursor: pointer; font-weight: 700; }
+.refresh-button:hover, .cancel-button:hover { border-color: #cbb8e8; background: #fbf9ff; }
+.refresh-button { color: #5d0bd0; }
+.refresh-button svg, .cancel-button svg { width: 1.1rem; margin-right: .55rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.cancel-button { color: #c51c25; font-size: .95rem; }
+.bottom-nav { position: fixed; right: 0; bottom: 0; left: 0; display: flex; justify-content: center; gap: clamp(2.5rem, 12vw, 7rem); padding: .7rem 1rem .55rem; border-top: 1px solid var(--line); background: rgb(255 255 255 / .97); }
+.bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: .25rem; color: #41394a; font-size: .8rem; font-weight: 700; }
+.bottom-nav a svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.bottom-nav a.selected { color: #5d0bd0; }
+.state-card { display: flex; align-items: center; gap: 1rem; margin-top: 1.4rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--surface-card); box-shadow: var(--shadow-card); }
+.state-card strong { display: block; font-size: 1.05rem; }
+.state-card p { margin: .35rem 0 0; color: var(--muted); line-height: 1.5; }
+.state-spinner { width: 1.5rem; height: 1.5rem; flex: 0 0 1.5rem; border: 3px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; animation: spin 800ms linear infinite; }
+.state-icon { display: grid; width: 2rem; height: 2rem; flex: 0 0 2rem; place-items: center; border-radius: 50%; color: #9c1c24; background: #fde4e4; font-weight: 800; }
+.state-card-error { border-color: #efc8ca; background: #fffafa; }
+.state-action { margin-left: auto; padding: .65rem .85rem; border: 1px solid #dca4a7; border-radius: .6rem; color: #9c1c24; background: transparent; cursor: pointer; font-weight: 800; }
+button:focus-visible, a:focus-visible { outline: 3px solid #bca3ed; outline-offset: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 560px) {
+  .turn-header { min-height: 82px; padding: .8rem 1rem; }
+  .turn-brand strong { font-size: .95rem; }
+  .turn-brand small { font-size: .62rem; }
+  .demo-badge { padding: .25rem .55rem; font-size: .65rem; }
+  .account-button { width: 2.7rem; height: 2.7rem; }
+  .turn-content { width: min(100% - 1rem, 720px); padding-top: .7rem; }
+  .turn-tab { min-height: 2.7rem; font-size: .78rem; }
+  .ticket-heading { padding-inline: 1rem; }
+  .ticket-heading strong { font-size: .75rem; }
+  .waiting-badge { padding: .55rem .75rem; font-size: .82rem; }
+  .ticket-details { gap: .6rem; padding: 1rem; }
+  .ticket-details > div { gap: .55rem; padding: .75rem; }
+  .detail-icon { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; }
+  .ticket-details span:not(.detail-icon) { font-size: .75rem; }
+  .ticket-details strong { font-size: 1.25rem; }
+  .notice-card, .movement-card { padding: 1.15rem; }
+  .notice-card strong, .movement-card strong { font-size: 1rem; }
+  .notice-card p, .movement-card p { font-size: .9rem; }
+  .progress-labels { font-size: .66rem; }
+  .state-card { align-items: flex-start; padding: 1.2rem; }
+  .state-action { margin: .9rem 0 0; }
+  .state-card-error { flex-wrap: wrap; }
+}
